@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+            Advance Billing System
+        {% endblock %}
+    </title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f4f6f9;
+            color: #1f2937;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .navbar {
+            height: 70px;
+            background: #1f2937;
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 40px;
+
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand {
+            color: white;
+            text-decoration: none;
+
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .nav-links a {
+            color: #d1d5db;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        .logout-btn {
+            background: #dc2626;
+            color: white !important;
+
+            padding: 9px 15px;
+            border-radius: 7px;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+
+
+        /* =========================
+           MAIN CONTENT
+        ========================= */
+
+        main {
+            flex: 1;
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer {
+            background: #1f2937;
+            color: #9ca3af;
+
+            text-align: center;
+
+            padding: 20px;
+
+            font-size: 13px;
+
+            margin-top: 50px;
+        }
+
+        .footer strong {
+            color: white;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 700px) {
+
+            .navbar {
+                padding: 0 20px;
+            }
+
+            .brand {
+                font-size: 16px;
+            }
+
+            .nav-links {
+                gap: 12px;
+            }
+
+            .nav-links a {
+                font-size: 12px;
+            }
+
+            .nav-links a:not(.logout-btn) {
+                display: none;
+            }
+
+        }
+
+    </style>
+
+
+    {% block extra_css %}
+    {% endblock %}
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <header class="navbar">
+
+        <a
+            href="{% url 'distributor_dashboard' %}"
+            class="brand"
+        >
+            Advance Billing System
+        </a>
+
+
+        {% if user.is_authenticated %}
+
+            <nav class="nav-links">
+
+                <a href="{% url 'distributor_dashboard' %}">
+                    Dashboard
+                </a>
+
+                <a href="{% url 'customer_list' %}">
+                    Customers
+                </a>
+
+                <a href="{% url 'distributor_profile' %}">
+                    My Profile
+                </a>
+
+                <a
+                    href="{% url 'logout' %}"
+                    class="logout-btn"
+                >
+                    Logout
+                </a>
+
+            </nav>
+
+        {% endif %}
+
+    </header>
+
+
+    <!-- =========================
+         PAGE CONTENT
+    ========================== -->
+
+    <main>
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer class="footer">
+
+        <p>
+            © {% now "Y" %}
+            <strong>Advance Billing System</strong>.
+            All rights reserved.
+        </p>
+
+    </footer>
+
+
+    {% block extra_js %}
+    {% endblock %}
+
+
+</body>
+
+</html>

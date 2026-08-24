@@ -1,0 +1,185 @@
+{% extends 'accounts/base.html' %}
+
+
+{% block title %}
+    Customers | Advance Billing System
+{% endblock %}
+
+
+{% block extra_css %}
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            color: #111827;
+        }
+
+        /* =========================
+           NAVBAR
+        ========================= */
+
+        .navbar {
+            background: #1f2937;
+            color: white;
+            padding: 18px 30px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .nav-links a:hover {
+            color: #34d399;
+        }
+
+        .profile-link {
+            background: #059669;
+            padding: 9px 15px;
+            border-radius: 7px;
+        }
+
+        .profile-link:hover {
+            background: #047857;
+            color: white !important;
+        }
+
+        /* =========================
+           CONTENT
+        ========================= */
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .welcome {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .welcome h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .welcome p {
+            color: #6b7280;
+            margin: 10px 0;
+        }
+
+        .account-info {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .account-info p strong {
+            color: #374151;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .navbar h2 {
+                font-size: 16px;
+            }
+
+            .nav-links {
+                gap: 10px;
+            }
+
+            .nav-links a {
+                font-size: 12px;
+            }
+
+            .container {
+                margin: 20px auto;
+                padding: 15px;
+            }
+
+            .welcome {
+                padding: 22px;
+            }
+
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block content %}
+
+    <!-- CONTENT -->
+
+    <div class="container">
+
+        <div class="welcome">
+
+            <h1>
+                Welcome,
+                {{ request.user.first_name }}
+            </h1>
+
+            <p>
+                You are logged in as a Distributor.
+            </p>
+
+
+            <div class="account-info">
+
+                <p>
+                    <strong>Email:</strong>
+                    {{ request.user.email }}
+                </p>
+
+                <p>
+                    <strong>Phone:</strong>
+                    {{ request.user.distributor_profile.phone }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+{% endblock %}
