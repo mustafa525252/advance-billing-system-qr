@@ -12,6 +12,9 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
 from django.views.decorators.http import require_POST
+from decimal import Decimal, InvalidOperation
+from .models import Product
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -168,11 +171,52 @@ def distributor_login(request):
 
 @login_required
 def admin_dashboard(request):
+
     if not request.user.is_staff:
-        messages.error(request, 'Admin access required.')
+
+        messages.error(
+            request,
+            'Admin access required.'
+        )
+
         return redirect('distributor_login')
 
-    return render(request, 'accounts/admin_dashboard.html')
+
+    distributors = DistributorProfile.objects.select_related(
+        'user'
+    ).all().order_by('-created_at')
+
+
+    customers = Customer.objects.all()
+
+
+    products = Product.objects.all().order_by(
+        '-created_at'
+    )
+
+
+    context = {
+
+        'distributors': distributors,
+
+        'customers': customers,
+
+        'products': products,
+
+        'distributor_count': distributors.count(),
+
+        'customer_count': customers.count(),
+
+        'product_count': products.count(),
+
+    }
+
+
+    return render(
+        request,
+        'accounts/admin_dashboard.html',
+        context
+    )
 
 
 @login_required
@@ -1358,3 +1402,193 @@ def delete_customer(request, customer_id):
     )
 
     return redirect('customer_list')
+
+
+def add_product(request):
+
+    if request.method == 'POST':
+
+        name = request.POST.get('name', '').strip()
+        category = request.POST.get('category', '').strip()
+        price = request.POST.get('price', '').strip()
+        stock = request.POST.get('stock', '').strip()
+        gst_rate = request.POST.get('gst_rate', '').strip()
+
+
+        # PRODUCT NAME VALIDATION
+
+        if not name:
+            messages.error(
+                request,
+                'Product name is required.'
+            )
+
+            return render(
+                request,
+                'accounts/add_product.html'
+            )
+
+
+        # CATEGORY VALIDATION
+
+        if not category:
+            messages.error(
+                request,
+                'Category is required.'
+            )
+
+            return render(
+                request,
+                'accounts/add_product.html'
+            )
+
+
+        # PRICE VALIDATION
+
+        try:
+
+            price = Decimal(price)
+
+            if price <= 0:
+
+                messages.error(
+                    request,
+                    'Price must be greater than 0.'
+                )
+
+                return render(
+                    request,
+                    'accounts/add_product.html'
+                )
+
+        except InvalidOperation:
+
+            messages.error(
+                request,
+                'Please enter a valid price.'
+            )
+
+            return render(
+                request,
+                'accounts/add_product.html'
+            )
+
+
+        # STOCK VALIDATION
+
+        try:
+
+            stock = int(stock)
+
+            if stock < 0:
+
+                messages.error(
+                    request,
+                    'Stock cannot be negative.'
+                )
+
+                return render(
+                    request,
+                    'accounts/add_product.html'
+                )
+
+        except ValueError:
+
+            messages.error(
+                request,
+                'Please enter a valid stock quantity.'
+            )
+
+            return render(
+                request,
+                'accounts/add_product.html'
+            )
+
+
+        # GST VALIDATION
+
+        try:
+
+            gst_rate = Decimal(gst_rate)
+
+            if gst_rate < 0:
+
+                messages.error(
+                    request,
+                    'GST rate cannot be negative.'
+                )
+
+                return render(
+                    request,
+                    'accounts/add_product.html'
+                )
+
+        except InvalidOperation:
+
+            messages.error(
+                request,
+                'Please enter a valid GST rate.'
+            )
+
+            return render(
+                request,
+                'accounts/add_product.html'
+            )
+
+
+        # CREATE PRODUCT
+
+        Product.objects.create(
+
+            name=name,
+            category=category,
+            price=price,
+            stock=stock,
+            gst_rate=gst_rate
+
+        )
+
+
+        messages.success(
+            request,
+            'Product added successfully.'
+        )
+
+        return redirect('add_product')
+
+
+    return render(
+        request,
+        'accounts/add_product.html'
+    )
+    
+    
+def product_list(request):
+
+    search_query = request.GET.get('search', '')
+
+    products = Product.objects.all().order_by('-created_at')
+
+    if search_query:
+
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+
+    paginator = Paginator(products, 5)
+
+    page_number = request.GET.get('page')
+
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+    }
+
+    return render(
+        request,
+        'accounts/product_list.html',
+        context
+    )
