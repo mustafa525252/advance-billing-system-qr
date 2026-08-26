@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 import random
 from datetime import timedelta
 from django.utils import timezone
@@ -1554,7 +1554,7 @@ def add_product(request):
             'Product added successfully.'
         )
 
-        return redirect('add_product')
+        return redirect('product_list')
 
 
     return render(
@@ -1590,5 +1590,189 @@ def product_list(request):
     return render(
         request,
         'accounts/product_list.html',
+        context
+    )
+    
+    
+@login_required
+def edit_product(request, product_id):
+
+    product = get_object_or_404(
+        Product,
+        id=product_id
+    )
+
+    if request.method == 'POST':
+
+        name = request.POST.get(
+            'name',
+            ''
+        ).strip()
+
+        category = request.POST.get(
+            'category',
+            ''
+        ).strip()
+
+        price = request.POST.get(
+            'price',
+            ''
+        ).strip()
+
+        stock = request.POST.get(
+            'stock',
+            ''
+        ).strip()
+
+        gst_rate = request.POST.get(
+            'gst_rate',
+            ''
+        ).strip()
+
+
+        # VALIDATION
+
+        if not name:
+
+            messages.error(
+                request,
+                'Product name is required.'
+            )
+
+            return redirect(
+                'edit_product',
+                product_id=product.id
+            )
+
+
+        if not category:
+
+            messages.error(
+                request,
+                'Category is required.'
+            )
+
+            return redirect(
+                'edit_product',
+                product_id=product.id
+            )
+
+
+        try:
+
+            price = float(price)
+
+            stock = int(stock)
+
+            gst_rate = float(gst_rate)
+
+        except ValueError:
+
+            messages.error(
+                request,
+                'Please enter valid product values.'
+            )
+
+            return redirect(
+                'edit_product',
+                product_id=product.id
+            )
+
+
+        if price <= 0:
+
+            messages.error(
+                request,
+                'Price must be greater than 0.'
+            )
+
+            return redirect(
+                'edit_product',
+                product_id=product.id
+            )
+
+
+        if stock < 0:
+
+            messages.error(
+                request,
+                'Stock cannot be negative.'
+            )
+
+            return redirect(
+                'edit_product',
+                product_id=product.id
+            )
+
+
+        if gst_rate < 0:
+
+            messages.error(
+                request,
+                'GST rate cannot be negative.'
+            )
+
+            return redirect(
+                'edit_product',
+                product_id=product.id
+            )
+
+
+        # UPDATE PRODUCT
+
+        product.name = name
+        product.category = category
+        product.price = price
+        product.stock = stock
+        product.gst_rate = gst_rate
+
+        product.save()
+
+
+        messages.success(
+            request,
+            'Product updated successfully.'
+        )
+
+        return redirect('product_list')
+
+
+    context = {
+        'product': product
+    }
+
+    return render(
+        request,
+        'accounts/edit_product.html',
+        context
+    )
+    
+    
+@login_required
+def delete_product(request, product_id):
+
+    product = get_object_or_404(
+        Product,
+        id=product_id
+    )
+
+    if request.method == 'POST':
+
+        product.delete()
+
+        messages.success(
+            request,
+            'Product deleted successfully.'
+        )
+
+        return redirect('product_list')
+
+    context = {
+        'product': product
+    }
+
+    return render(
+        request,
+        'accounts/delete_product.html',
         context
     )

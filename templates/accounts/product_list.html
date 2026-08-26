@@ -2,14 +2,13 @@
 
 
 {% block title %}
-    Products | Advance Billing System
+Products | Advance Billing System
 {% endblock %}
 
 
 {% block extra_css %}
 
 <style>
-
     .page {
         max-width: 1200px;
         margin: 40px auto;
@@ -53,6 +52,23 @@
 
     .add-btn:hover {
         background: #047857;
+    }
+
+
+    .delete-btn {
+        display: inline-block;
+        padding: 8px 14px;
+        background: #dc2626;
+        color: white;
+        text-decoration: none;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-left: 6px;
+    }
+
+    .delete-btn:hover {
+        background: #b91c1c;
     }
 
 
@@ -177,6 +193,21 @@
         flex-wrap: wrap;
     }
 
+    .edit-btn {
+        display: inline-block;
+        padding: 8px 14px;
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .edit-btn:hover {
+        background: #1d4ed8;
+    }
+
     .pagination a,
     .pagination span {
         min-width: 38px;
@@ -220,13 +251,19 @@
         }
 
     }
-
 </style>
 
 {% endblock %}
 
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
 
 <div class="page">
 
@@ -246,10 +283,7 @@
         </div>
 
 
-        <a
-            href="{% url 'add_product' %}"
-            class="add-btn"
-        >
+        <a href="{% url 'add_product' %}" class="add-btn">
             + Add Product
         </a>
 
@@ -260,22 +294,12 @@
 
     <div class="search-card">
 
-        <form
-            method="GET"
-            class="search-form"
-        >
+        <form method="GET" class="search-form">
 
-            <input
-                type="text"
-                name="search"
-                value="{{ search_query }}"
-                placeholder="Search by product name or category..."
-            >
+            <input type="text" name="search" value="{{ search_query }}"
+                placeholder="Search by product name or category...">
 
-            <button
-                type="submit"
-                class="search-btn"
-            >
+            <button type="submit" class="search-btn">
                 Search
             </button>
 
@@ -302,6 +326,7 @@
                         <th>Price</th>
                         <th>Stock</th>
                         <th>GST Rate</th>
+                        <th>Actions</th>
 
                     </tr>
 
@@ -312,50 +337,56 @@
 
                     {% for product in page_obj %}
 
-                        <tr>
+                    <tr>
 
-                            <td>
-                                {{ forloop.counter0|add:page_obj.start_index }}
-                            </td>
+                        <td>
+                            {{ forloop.counter0|add:page_obj.start_index }}
+                        </td>
 
-                            <td class="product-name">
-                                {{ product.name }}
-                            </td>
+                        <td class="product-name">
+                            {{ product.name }}
+                        </td>
 
-                            <td>
-                                {{ product.category }}
-                            </td>
+                        <td>
+                            {{ product.category }}
+                        </td>
 
-                            <td class="price">
-                                ₹{{ product.price }}
-                            </td>
+                        <td class="price">
+                            ₹{{ product.price }}
+                        </td>
 
-                            <td>
-                                <span class="stock">
-                                    {{ product.stock }}
-                                </span>
-                            </td>
+                        <td>
+                            <span class="stock">
+                                {{ product.stock }}
+                            </span>
+                        </td>
 
-                            <td>
-                                {{ product.gst_rate }}%
-                            </td>
+                        <td>
+                            {{ product.gst_rate }}%
+                        </td>
+                        <td>
 
-                        </tr>
+                            <a href="{% url 'edit_product' product.id %}" class="edit-btn">
+                                Edit
+                            </a>
+                            <a href="{% url 'delete_product' product.id %}" class="delete-btn">
+                                Delete
+                            </a>
+
+                        </td>
+                    </tr>
 
                     {% empty %}
 
-                        <tr>
+                    <tr>
 
-                            <td
-                                colspan="6"
-                                class="no-products"
-                            >
+                        <td colspan="6" class="no-products">
 
-                                No products found.
+                            No products found.
 
-                            </td>
+                        </td>
 
-                        </tr>
+                    </tr>
 
                     {% endfor %}
 
@@ -372,57 +403,51 @@
 
     {% if page_obj.has_other_pages %}
 
-        <div class="pagination">
+    <div class="pagination">
 
 
-            {% if page_obj.has_previous %}
+        {% if page_obj.has_previous %}
 
-                <a
-                    href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}"
-                >
-                    Previous
-                </a>
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}">
+            Previous
+        </a>
 
-            {% endif %}
+        {% endif %}
 
 
-            {% for page_number in page_obj.paginator.page_range %}
+        {% for page_number in page_obj.paginator.page_range %}
 
-                {% if page_number == page_obj.number %}
+        {% if page_number == page_obj.number %}
 
-                    <span class="current">
+        <span class="current">
 
-                        {{ page_number }}
+            {{ page_number }}
 
-                    </span>
+        </span>
 
-                {% else %}
+        {% else %}
 
-                    <a
-                        href="?page={{ page_number }}&search={{ search_query }}"
-                    >
+        <a href="?page={{ page_number }}&search={{ search_query }}">
 
-                        {{ page_number }}
+            {{ page_number }}
 
-                    </a>
+        </a>
 
-                {% endif %}
+        {% endif %}
 
-            {% endfor %}
+        {% endfor %}
 
 
-            {% if page_obj.has_next %}
+        {% if page_obj.has_next %}
 
-                <a
-                    href="?page={{ page_obj.next_page_number }}&search={{ search_query }}"
-                >
-                    Next
-                </a>
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}">
+            Next
+        </a>
 
-            {% endif %}
+        {% endif %}
 
 
-        </div>
+    </div>
 
     {% endif %}
 

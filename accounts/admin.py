@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Product, DistributorProfile
+from .models import Invoice, InvoiceItem
 
 # Register your models here.
 
@@ -25,3 +26,6 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = (
         'category',
     )
+    
+admin.site.register(Invoice)
+admin.site.register(InvoiceItem)
