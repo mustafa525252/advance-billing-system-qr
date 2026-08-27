@@ -111,6 +111,75 @@ Products | Advance Billing System
         font-weight: 600;
     }
 
+    /* MESSAGES */
+
+.message {
+    max-width: 1200px;
+    margin: 20px auto 0;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideDown 0.3s ease;
+}
+
+.message.success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.message.success::before {
+    content: "✓";
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #059669;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.message.error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.message.error::before {
+    content: "!";
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+@keyframes slideDown {
+
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
 
     /* TABLE */
 
@@ -257,15 +326,16 @@ Products | Advance Billing System
 
 
 {% block content %}
-{% if messages %}
+
+
+<div class="page">
+    {% if messages %}
     {% for message in messages %}
         <div class="message {{ message.tags }}">
             {{ message }}
         </div>
     {% endfor %}
 {% endif %}
-
-<div class="page">
 
 
     <!-- PAGE HEADER -->

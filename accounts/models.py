@@ -164,6 +164,18 @@ class InvoiceItem(models.Model):
         decimal_places=2
     )
 
+    gst_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
+    discount = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
     total = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -172,11 +184,28 @@ class InvoiceItem(models.Model):
 
     def save(self, *args, **kwargs):
 
-        self.total = self.quantity * self.price
+        base_amount = self.quantity * self.price
+
+        gst_amount = (
+            base_amount * self.gst_rate / 100
+        )
+
+        discount_amount = (
+            base_amount * self.discount / 100
+        )
+
+        self.total = (
+            base_amount
+            + gst_amount
+            - discount_amount
+        )
 
         super().save(*args, **kwargs)
 
 
     def __str__(self):
 
-        return f"{self.invoice.invoice_number} - {self.product.name}"
+        return (
+            f"{self.invoice.invoice_number} - "
+            f"{self.product.name}"
+        )

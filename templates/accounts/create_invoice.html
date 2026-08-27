@@ -1,0 +1,600 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}
+Create Invoice | Advance Billing System
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    .page {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .page-header {
+        margin-bottom: 25px;
+    }
+
+    .page-header h1 {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .page-header p {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .invoice-card {
+        background: white;
+        padding: 30px;
+        border-radius: 14px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-group {
+        margin-bottom: 22px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    select,
+    input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+    }
+
+    select:focus,
+    input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .items-table th,
+    .items-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+    }
+
+    .items-table th {
+        background: #f9fafb;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #374151;
+    }
+
+    .items-table input,
+    .items-table select {
+        min-width: 100px;
+    }
+
+    /* Add Product CSS */
+    .add-product-btn {
+        margin-top: 20px;
+        padding: 11px 16px;
+        border: 1px solid #059669;
+        border-radius: 8px;
+        background: white;
+        color: #059669;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .add-product-btn:hover {
+        background: #ecfdf5;
+    }
+
+    /* Remove Product CSS */
+    .remove-product-btn {
+
+        padding: 9px 14px;
+
+        border: none;
+
+        border-radius: 7px;
+
+        background: #dc2626;
+
+        color: white;
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+    }
+
+    .remove-product-btn:hover {
+
+        background: #b91c1c;
+
+    }
+
+
+    .total-section {
+        margin-top: 30px;
+        display: flex;
+        justify-content: flex-end;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .create-btn {
+        width: 100%;
+        margin-top: 25px;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        background: #059669;
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .create-btn:hover {
+        background: #047857;
+    }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="page">
+
+    <div class="page-header">
+
+        <h1>Create Invoice</h1>
+
+        <p>
+            Select a customer and add products to create an invoice.
+        </p>
+
+    </div>
+
+
+    <div class="invoice-card">
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+
+            <!-- CUSTOMER -->
+
+            <div class="form-group">
+
+                <label for="customer">
+
+                    Select Customer
+
+                </label>
+
+                <select id="customer" name="customer" required>
+
+                    <option value="">
+                        -- Select Customer --
+                    </option>
+
+                    {% for customer in customers %}
+
+                    <option value="{{ customer.id }}">
+
+                        {{ customer.name }}
+
+                        {% if customer.phone %}
+                        - {{ customer.phone }}
+                        {% endif %}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- PRODUCT ITEMS -->
+
+            <h3>Invoice Items</h3>
+
+            <table class="items-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>GST %</th>
+                        <th>Discount %</th>
+                        <th>Total</th>
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="invoice-items">
+
+                    <tr class="invoice-row">
+
+                        <td>
+
+                            <select name="product[]" class="product-select" required>
+
+                                <option value="">
+                                    Select Product
+                                </option>
+
+                                {% for product in products %}
+
+                                <option value="{{ product.id }}" data-price="{{ product.price }}"
+                                    data-gst="{{ product.gst_rate }}">
+
+                                    {{ product.name }}
+
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </td>
+
+
+                        <td>
+
+                            <input type="number" name="price[]" class="price" step="0.01" readonly>
+
+                        </td>
+
+
+                        <td>
+
+                            <input type="number" name="quantity[]" class="quantity" value="1" min="1" required>
+
+                        </td>
+
+
+                        <td>
+
+                            <input type="number" name="gst_rate[]" class="gst-rate" value="0" min="0" step="0.01">
+
+                        </td>
+
+
+                        <td>
+
+                            <input type="number" name="discount[]" class="discount" value="0" min="0" max="100"
+                                step="0.01">
+
+                        </td>
+
+
+                        <td>
+
+                            <input type="number" name="total[]" class="item-total" value="0" readonly>
+
+                        </td>
+                        <td>
+
+                            <button type="button" class="remove-product-btn">
+                                Remove
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <!-- NEXT STEP: DYNAMIC BUTTON -->
+
+            <button type="button" class="add-product-btn">
+
+                + Add Product
+
+            </button>
+
+
+            <div class="total-section">
+
+                Grand Total:
+                ₹
+                <span id="grand-total">
+
+                    0.00
+
+                </span>
+
+            </div>
+
+
+            <button type="submit" class="create-btn">
+
+                Create Invoice
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const invoiceItems =
+        document.getElementById('invoice-items');
+
+    const addProductBtn =
+        document.querySelector('.add-product-btn');
+
+
+    // CALCULATE SINGLE ROW
+
+    function calculateRow(row) {
+
+        const price = parseFloat(
+            row.querySelector('.price').value
+        ) || 0;
+
+        const quantity = parseFloat(
+            row.querySelector('.quantity').value
+        ) || 0;
+
+        const gstRate = parseFloat(
+            row.querySelector('.gst-rate').value
+        ) || 0;
+
+        const discount = parseFloat(
+            row.querySelector('.discount').value
+        ) || 0;
+
+
+        const baseAmount =
+            price * quantity;
+
+
+        const gstAmount =
+            (baseAmount * gstRate) / 100;
+
+
+        const discountAmount =
+            (baseAmount * discount) / 100;
+
+
+        const itemTotal =
+            baseAmount
+            + gstAmount
+            - discountAmount;
+
+
+        row.querySelector('.item-total').value =
+            itemTotal.toFixed(2);
+
+
+        calculateGrandTotal();
+
+    }
+
+
+    // CALCULATE GRAND TOTAL
+
+    function calculateGrandTotal() {
+
+        let grandTotal = 0;
+
+
+        const rows =
+            document.querySelectorAll('.invoice-row');
+
+
+        rows.forEach(function (row) {
+
+            const itemTotal = parseFloat(
+                row.querySelector('.item-total').value
+            ) || 0;
+
+
+            grandTotal += itemTotal;
+
+        });
+
+
+        document.getElementById('grand-total').textContent =
+            grandTotal.toFixed(2);
+
+    }
+
+
+    // PRODUCT SELECTION
+
+    invoiceItems.addEventListener(
+        'change',
+        function (event) {
+
+            if (
+                event.target.classList.contains(
+                    'product-select'
+                )
+            ) {
+
+                const row =
+                    event.target.closest('.invoice-row');
+
+
+                const selectedOption =
+                    event.target.options[
+                        event.target.selectedIndex
+                    ];
+
+
+                row.querySelector('.price').value =
+                    selectedOption.dataset.price || 0;
+
+
+                row.querySelector('.gst-rate').value =
+                    selectedOption.dataset.gst || 0;
+
+
+                calculateRow(row);
+
+            }
+
+        }
+    );
+
+
+    // QUANTITY, GST, DISCOUNT CHANGES
+
+    invoiceItems.addEventListener(
+        'input',
+        function (event) {
+
+            if (
+                event.target.classList.contains('quantity') ||
+                event.target.classList.contains('gst-rate') ||
+                event.target.classList.contains('discount')
+            ) {
+
+                const row =
+                    event.target.closest('.invoice-row');
+
+
+                calculateRow(row);
+
+            }
+
+        }
+    );
+
+
+    // ADD NEW PRODUCT ROW
+
+    addProductBtn.addEventListener(
+        'click',
+        function () {
+
+            const firstRow =
+                document.querySelector('.invoice-row');
+
+
+            const newRow =
+                firstRow.cloneNode(true);
+
+
+            // RESET PRODUCT
+
+            newRow.querySelector('.product-select').value = '';
+
+
+            // RESET PRICE
+
+            newRow.querySelector('.price').value = '';
+
+
+            // RESET QUANTITY
+
+            newRow.querySelector('.quantity').value = 1;
+
+
+            // RESET GST
+
+            newRow.querySelector('.gst-rate').value = 0;
+
+
+            // RESET DISCOUNT
+
+            newRow.querySelector('.discount').value = 0;
+
+
+            // RESET TOTAL
+
+            newRow.querySelector('.item-total').value = 0;
+
+
+            invoiceItems.appendChild(newRow);
+
+        }
+    );
+
+
+    // REMOVE PRODUCT ROW
+
+    invoiceItems.addEventListener(
+        'click',
+        function (event) {
+
+            if (
+                event.target.classList.contains(
+                    'remove-product-btn'
+                )
+            ) {
+
+                const rows =
+                    document.querySelectorAll('.invoice-row');
+
+
+                // KEEP AT LEAST ONE ROW
+
+                if (rows.length === 1) {
+
+                    alert(
+                        'At least one product is required.'
+                    );
+
+                    return;
+
+                }
+
+
+                const row =
+                    event.target.closest('.invoice-row');
+
+
+                row.remove();
+
+
+                calculateGrandTotal();
+
+            }
+
+        }
+    );
+
+});
+
+</script>
+
+{% endblock %}

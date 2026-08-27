@@ -6,15 +6,16 @@ import random
 from datetime import timedelta
 from django.utils import timezone
 from .models import OTPVerification, DistributorProfile
-from .models import Customer
+from .models import Customer, Product, Invoice, InvoiceItem
 from django.contrib.auth.models import User, Group
+from django.db import transaction   
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
 from django.views.decorators.http import require_POST
 from decimal import Decimal, InvalidOperation
-from .models import Product
 from django.core.paginator import Paginator
+from django.db.models import Sum
 
 # Create your views here.
 
@@ -247,8 +248,6 @@ import re
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from django.shortcuts import render, redirect
-
-from .models import DistributorProfile
 
 
 def distributor_register(request):
@@ -1774,5 +1773,297 @@ def delete_product(request, product_id):
     return render(
         request,
         'accounts/delete_product.html',
+        context
+    )
+    
+@login_required
+def create_invoice(request):
+
+    customers = Customer.objects.all()
+    products = Product.objects.all()
+
+    if request.method == 'POST':
+
+        customer_id = request.POST.get('customer')
+
+        product_ids = request.POST.getlist('product[]')
+        quantities = request.POST.getlist('quantity[]')
+        prices = request.POST.getlist('price[]')
+        gst_rates = request.POST.getlist('gst_rate[]')
+        discounts = request.POST.getlist('discount[]')
+
+
+        # Validate customer
+
+        if not customer_id:
+
+            messages.error(
+                request,
+                'Please select a customer.'
+            )
+
+            return redirect('create_invoice')
+
+
+        customer = get_object_or_404(
+            Customer,
+            id=customer_id
+        )
+
+
+        # Check at least one product exists
+
+        valid_products = [
+            product_id
+            for product_id in product_ids
+            if product_id
+        ]
+
+        if not valid_products:
+
+            messages.error(
+                request,
+                'Please select at least one product.'
+            )
+
+            return redirect('create_invoice')
+
+
+        try:
+
+            with transaction.atomic():
+
+                # Generate invoice number
+
+                invoice_number = (
+                    f"INV-"
+                    f"{timezone.now().strftime('%Y%m%d%H%M%S%f')}"
+                )
+
+
+                # Create invoice first
+
+                invoice = Invoice.objects.create(
+
+                    customer=customer,
+
+                    invoice_number=invoice_number,
+
+                    total_amount=Decimal('0.00')
+
+                )
+
+
+                grand_total = Decimal('0.00')
+
+
+                # Create invoice items
+
+                for index, product_id in enumerate(product_ids):
+
+                    # Skip empty product rows
+
+                    if not product_id:
+                        continue
+
+
+                    product = get_object_or_404(
+                        Product,
+                        id=product_id
+                    )
+
+
+                    quantity = int(
+                        quantities[index]
+                    )
+
+
+                    # Validate quantity
+
+                    if quantity < 1:
+
+                        raise ValueError(
+                            'Quantity must be at least 1.'
+                        )
+
+
+                    price = Decimal(
+                        prices[index]
+                    )
+
+
+                    gst_rate = Decimal(
+                        gst_rates[index] or '0'
+                    )
+
+
+                    discount = Decimal(
+                        discounts[index] or '0'
+                    )
+
+
+                    # Validation
+
+                    if price < 0:
+
+                        raise ValueError(
+                            'Product price cannot be negative.'
+                        )
+
+
+                    if gst_rate < 0:
+
+                        raise ValueError(
+                            'GST rate cannot be negative.'
+                        )
+
+
+                    if discount < 0 or discount > 100:
+
+                        raise ValueError(
+                            'Discount must be between 0 and 100.'
+                        )
+
+
+                    # Create InvoiceItem
+                    # Its save() method automatically calculates total
+
+                    invoice_item = InvoiceItem.objects.create(
+
+                        invoice=invoice,
+
+                        product=product,
+
+                        quantity=quantity,
+
+                        price=price,
+
+                        gst_rate=gst_rate,
+
+                        discount=discount
+
+                    )
+
+
+                    grand_total += invoice_item.total
+
+
+                # Update final invoice amount
+
+                invoice.total_amount = grand_total
+
+                invoice.save()
+
+
+            messages.success(
+                request,
+                f'Invoice {invoice.invoice_number} '
+                f'created successfully.'
+            )
+
+
+            return redirect('invoice_list')
+
+
+        except (ValueError, IndexError) as error:
+
+            messages.error(
+                request,
+                str(error)
+            )
+
+            return redirect('create_invoice')
+
+
+        except Exception:
+
+            messages.error(
+                request,
+                'Unable to create invoice. Please try again.'
+            )
+
+            return redirect('create_invoice')
+
+
+    context = {
+        'customers': customers,
+        'products': products
+    }
+
+    return render(
+        request,
+        'accounts/create_invoice.html',
+        context
+    )
+    
+    
+@login_required
+def invoice_list(request):
+
+    invoices = Invoice.objects.select_related(
+        'customer'
+    ).order_by('-created_at')
+
+
+    total_billing = invoices.aggregate(
+        total=Sum('total_amount')
+    )['total'] or 0
+
+
+    context = {
+
+        'invoices': invoices,
+
+        'total_billing': total_billing
+
+    }
+
+
+    return render(
+        request,
+        'accounts/invoice_list.html',
+        context
+    )
+    
+    
+@login_required
+def invoice_detail(request, invoice_id):
+
+    invoice = get_object_or_404(
+        Invoice.objects.select_related('customer').prefetch_related(
+            'items__product'
+        ),
+        id=invoice_id
+    )
+
+    context = {
+        'invoice': invoice
+    }
+
+    return render(
+        request,
+        'accounts/invoice_detail.html',
+        context
+    )
+    
+@login_required
+def print_invoice(request, invoice_id):
+
+    invoice = get_object_or_404(
+        Invoice.objects.select_related(
+            'customer'
+        ).prefetch_related(
+            'items__product'
+        ),
+        id=invoice_id
+    )
+
+    context = {
+        'invoice': invoice
+    }
+
+    return render(
+        request,
+        'accounts/print_invoice.html',
         context
     )
