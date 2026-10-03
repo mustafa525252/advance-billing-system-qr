@@ -1,0 +1,527 @@
+{% extends 'accounts/base.html' %}
+
+
+{% block title %}
+Products | Advance Billing System
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+    .page {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+
+    /* HEADER */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        gap: 20px;
+    }
+
+    .page-header h1 {
+        font-size: 28px;
+        margin-bottom: 6px;
+    }
+
+    .page-header p {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+
+    /* ADD BUTTON */
+
+    .add-btn {
+        background: #059669;
+        color: white;
+        text-decoration: none;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .add-btn:hover {
+        background: #047857;
+    }
+
+
+    .delete-btn {
+        display: inline-block;
+        padding: 8px 14px;
+        background: #dc2626;
+        color: white;
+        text-decoration: none;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-left: 6px;
+    }
+
+    .delete-btn:hover {
+        background: #b91c1c;
+    }
+
+
+    /* SEARCH */
+
+    .search-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-form input {
+        flex: 1;
+        padding: 12px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+    }
+
+    .search-form input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+
+    .search-btn {
+        padding: 12px 22px;
+        border: none;
+        border-radius: 8px;
+        background: #1f2937;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    /* MESSAGES */
+
+.message {
+    max-width: 1200px;
+    margin: 20px auto 0;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideDown 0.3s ease;
+}
+
+.message.success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.message.success::before {
+    content: "✓";
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #059669;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.message.error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.message.error::before {
+    content: "!";
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+@keyframes slideDown {
+
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+    /* TABLE */
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 850px;
+    }
+
+    th {
+        background: #f9fafb;
+        color: #374151;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    th,
+    td {
+        padding: 16px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+        font-size: 14px;
+        color: #374151;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .price {
+        font-weight: 600;
+        color: #047857;
+    }
+
+    .stock {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: #ecfdf5;
+        color: #047857;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .no-products {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
+    }
+
+
+    /* PAGINATION */
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+    }
+
+    .edit-btn {
+        display: inline-block;
+        padding: 8px 14px;
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .edit-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .pagination a,
+    .pagination span {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .pagination a {
+        background: white;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+    }
+
+    .pagination a:hover {
+        border-color: #059669;
+        color: #059669;
+    }
+
+    .pagination .current {
+        background: #059669;
+        color: white;
+        font-weight: 600;
+    }
+
+
+    @media (max-width: 650px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .search-form {
+            flex-direction: column;
+        }
+
+    }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="page">
+    {% if messages %}
+    {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+    <!-- PAGE HEADER -->
+
+    <div class="page-header">
+
+        <div>
+
+            <h1>Products</h1>
+
+            <p>
+                Manage and view your product inventory.
+            </p>
+
+        </div>
+
+
+        <a href="{% url 'add_product' %}" class="add-btn">
+            + Add Product
+        </a>
+
+    </div>
+
+
+    <!-- SEARCH -->
+
+    <div class="search-card">
+
+        <form method="GET" class="search-form">
+
+            <input type="text" name="search" value="{{ search_query }}"
+                placeholder="Search by product name or category...">
+
+            <button type="submit" class="search-btn">
+                Search
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- PRODUCT TABLE -->
+
+    <div class="table-card">
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>GST Rate</th>
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for product in page_obj %}
+
+                    <tr>
+
+                        <td>
+                            {{ forloop.counter0|add:page_obj.start_index }}
+                        </td>
+
+                        <td class="product-name">
+                            {{ product.name }}
+                        </td>
+
+                        <td>
+                            {{ product.category }}
+                        </td>
+
+                        <td class="price">
+                            ₹{{ product.price }}
+                        </td>
+
+                        <td>
+                            <span class="stock">
+                                {{ product.stock }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ product.gst_rate }}%
+                        </td>
+                        <td>
+
+                            <a href="{% url 'edit_product' product.id %}" class="edit-btn">
+                                Edit
+                            </a>
+                            <a href="{% url 'delete_product' product.id %}" class="delete-btn">
+                                Delete
+                            </a>
+
+                        </td>
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="6" class="no-products">
+
+                            No products found.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- PAGINATION -->
+
+    {% if page_obj.has_other_pages %}
+
+    <div class="pagination">
+
+
+        {% if page_obj.has_previous %}
+
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}">
+            Previous
+        </a>
+
+        {% endif %}
+
+
+        {% for page_number in page_obj.paginator.page_range %}
+
+        {% if page_number == page_obj.number %}
+
+        <span class="current">
+
+            {{ page_number }}
+
+        </span>
+
+        {% else %}
+
+        <a href="?page={{ page_number }}&search={{ search_query }}">
+
+            {{ page_number }}
+
+        </a>
+
+        {% endif %}
+
+        {% endfor %}
+
+
+        {% if page_obj.has_next %}
+
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}">
+            Next
+        </a>
+
+        {% endif %}
+
+
+    </div>
+
+    {% endif %}
+
+
+</div>
+
+{% endblock %}

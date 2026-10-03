@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Distributor Login | Advance Billing System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ecfdf5, #f8fafc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 950px;
+            min-height: 560px;
+            background: #ffffff;
+            border-radius: 22px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.10);
+        }
+
+        /* =========================
+           LEFT SIDE
+        ========================= */
+
+        .left-panel {
+            background: linear-gradient(145deg, #047857, #059669);
+            color: white;
+            padding: 55px 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: "";
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            top: -100px;
+            right: -80px;
+        }
+
+        .left-panel::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            bottom: -80px;
+            left: -60px;
+        }
+
+        .brand {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 45px;
+        }
+
+        .brand-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 22px;
+        }
+
+        .brand h1 {
+            font-size: 28px;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+
+        .brand p {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 340px;
+        }
+
+        .features {
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .feature-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.13);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* =========================
+           RIGHT SIDE
+        ========================= */
+
+        .right-panel {
+            padding: 55px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            font-size: 27px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* =========================
+           MESSAGES
+        ========================= */
+
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        /* =========================
+           FORM
+        ========================= */
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #9ca3af;
+        }
+
+        input {
+            width: 100%;
+            height: 48px;
+            padding: 0 14px 0 43px;
+            border: 1px solid #d1d5db;
+            border-radius: 9px;
+            outline: none;
+            font-size: 14px;
+            color: #111827;
+            background: #ffffff;
+            transition: 0.2s ease;
+        }
+
+        input::placeholder {
+            color: #9ca3af;
+        }
+
+        input:focus {
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.10);
+        }
+
+        .forgot {
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 24px;
+        }
+
+        .forgot a {
+            color: #059669;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .forgot a:hover {
+            text-decoration: underline;
+        }
+
+        /* =========================
+           LOGIN BUTTON
+        ========================= */
+
+        .login-btn {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 9px;
+            background: #059669;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .login-btn:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        /* =========================
+           REGISTER
+        ========================= */
+
+        .register-section {
+            text-align: center;
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .register-section p {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .register-section a {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .register-section a:hover {
+            text-decoration: underline;
+        }
+
+        .admin-login {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .admin-login a {
+            color: #6b7280;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .admin-login a:hover {
+            color: #111827;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 750px) {
+
+            .login-wrapper {
+                grid-template-columns: 1fr;
+                max-width: 480px;
+            }
+
+            .left-panel {
+                padding: 35px 30px;
+            }
+
+            .brand {
+                margin-bottom: 25px;
+            }
+
+            .features {
+                display: none;
+            }
+
+            .right-panel {
+                padding: 40px 30px;
+            }
+        }
+
+        @media (max-width: 420px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .login-wrapper {
+                border-radius: 16px;
+            }
+
+            .left-panel {
+                padding: 30px 25px;
+            }
+
+            .right-panel {
+                padding: 35px 25px;
+            }
+
+            .brand h1 {
+                font-size: 24px;
+            }
+
+            .login-header h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+
+        <!-- =========================
+             LEFT PANEL
+        ========================== -->
+
+        <div class="left-panel">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    🧾
+                </div>
+
+                <h1>
+                    Advance Billing System
+                </h1>
+
+                <p>
+                    Manage your billing, invoices and
+                    distributor operations from one
+                    secure platform.
+                </p>
+
+            </div>
+
+            <div class="features">
+
+                <div class="feature">
+
+                    <div class="feature-icon">
+                        ✓
+                    </div>
+
+                    <span>
+                        Secure distributor access
+                    </span>
+
+                </div>
+
+                <div class="feature">
+
+                    <div class="feature-icon">
+                        ✓
+                    </div>
+
+                    <span>
+                        Easy billing management
+                    </span>
+
+                </div>
+
+                <div class="feature">
+
+                    <div class="feature-icon">
+                        ✓
+                    </div>
+
+                    <span>
+                        QR-enabled billing system
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             RIGHT PANEL
+        ========================== -->
+
+        <div class="right-panel">
+
+            <div class="login-header">
+
+                <h2>
+                    Distributor Login
+                </h2>
+
+                <p>
+                    Sign in to access your distributor account.
+                </p>
+
+            </div>
+
+
+            <!-- Django Messages -->
+
+            {% if messages %}
+
+                <div class="messages">
+
+                    {% for message in messages %}
+
+                        <div class="message">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- Login Form -->
+
+            <form
+                method="POST"
+                action="{% url 'distributor_login' %}"
+            >
+
+                {% csrf_token %}
+
+
+                <!-- Email -->
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Email Address
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            ✉
+                        </span>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your registered email"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Password -->
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            🔒
+                        </span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Forgot Password -->
+
+                <div class="forgot">
+
+                    <a href="{% url 'forgot_password' %}">
+                        Forgot Password?
+                    </a>
+
+                </div>
+
+
+                <!-- Login -->
+
+                <button
+                    type="submit"
+                    class="login-btn"
+                >
+                    Login
+                </button>
+
+            </form>
+
+
+            <!-- Register -->
+
+            <div class="register-section">
+
+                <p>
+                    Don't have a distributor account?
+                </p>
+
+                <a href="{% url 'distributor_register' %}">
+                    Create Distributor Account
+                </a>
+
+            </div>
+
+
+            <!-- Admin Login -->
+
+            <div class="admin-login">
+
+                <a href="{% url 'admin_login' %}">
+                    Admin Login →
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

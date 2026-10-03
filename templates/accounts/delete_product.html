@@ -1,0 +1,151 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}
+    Delete Product | Advance Billing System
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+
+    .page {
+        max-width: 600px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+
+    .delete-card {
+        background: white;
+        padding: 35px;
+        border-radius: 14px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+        text-align: center;
+    }
+
+    .warning-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background: #fee2e2;
+        font-size: 32px;
+    }
+
+    .delete-card h1 {
+        margin-bottom: 12px;
+        font-size: 25px;
+        color: #1f2937;
+    }
+
+    .delete-card p {
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+
+    .product-name {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .cancel-btn,
+    .delete-btn {
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .cancel-btn {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .cancel-btn:hover {
+        background: #e5e7eb;
+    }
+
+    .delete-btn {
+        border: none;
+        background: #dc2626;
+        color: white;
+    }
+
+    .delete-btn:hover {
+        background: #b91c1c;
+    }
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="page">
+
+    <div class="delete-card">
+
+        <div class="warning-icon">
+            ⚠️
+        </div>
+
+        <h1>
+            Delete Product?
+        </h1>
+
+        <p>
+
+            Are you sure you want to delete
+
+            <span class="product-name">
+                "{{ product.name }}"
+            </span>
+
+            ?
+
+            This action cannot be undone.
+
+        </p>
+
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <div class="button-group">
+
+                <a
+                    href="{% url 'product_list' %}"
+                    class="cancel-btn"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="delete-btn"
+                >
+                    Yes, Delete
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
