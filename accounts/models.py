@@ -43,7 +43,9 @@ class Customer(models.Model):
     distributor = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='customers'
+        related_name='customers',
+        null=True,
+        blank=True
     )
 
     name = models.CharField(
@@ -74,6 +76,13 @@ class Customer(models.Model):
     
     
 class Product(models.Model):
+    distributor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='products',
+        null=True,
+        blank=True
+    )
 
     name = models.CharField(
         max_length=200
@@ -111,6 +120,13 @@ class Product(models.Model):
     
     
 class Invoice(models.Model):
+    distributor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='invoices',
+        null=True,
+        blank=True
+    )
 
     customer = models.ForeignKey(
         Customer,
@@ -138,7 +154,6 @@ class Invoice(models.Model):
     )
 
     def __str__(self):
-
         return self.invoice_number
     
     

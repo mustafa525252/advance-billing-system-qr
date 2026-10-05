@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 
 <html lang="en">
@@ -13,18 +14,14 @@
     >
 
     <title>
-
-        Invoice {{ invoice.invoice_number }}
-
+        Invoice {{ invoice.invoice_number }} | Advance Billing System
     </title>
 
 
     <style>
 
         * {
-
             box-sizing: border-box;
-
         }
 
 
@@ -34,254 +31,603 @@
 
             padding: 40px 20px;
 
-            background: #f4f6f9;
+            background:
+                linear-gradient(
+                    135deg,
+                    #f0fdf4,
+                    #f8fafc
+                );
 
-            font-family: Arial, Helvetica, sans-serif;
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
 
             color: #111827;
-
         }
 
+
+        /* =========================================
+           PAGE
+        ========================================= */
+
+        .page-wrapper {
+
+            max-width: 1050px;
+
+            margin: auto;
+        }
+
+
+        /* =========================================
+           PRINT BUTTON
+        ========================================= */
+
+        .print-actions {
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            margin-bottom: 20px;
+        }
+
+
+        .print-btn {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 12px 20px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #059669;
+
+            color: white;
+
+            font-size: 14px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 6px 15px
+                rgba(5, 150, 105, 0.20);
+
+            transition: 0.2s ease;
+        }
+
+
+        .print-btn:hover {
+
+            background: #047857;
+
+            transform: translateY(-1px);
+        }
+
+
+        /* =========================================
+           INVOICE CONTAINER
+        ========================================= */
 
         .invoice-container {
 
-            max-width: 900px;
+            background: #ffffff;
 
-            margin: auto;
+            border-radius: 18px;
 
-            background: white;
-
-            padding: 50px;
+            overflow: hidden;
 
             box-shadow:
-                0 10px 35px
-                rgba(0, 0, 0, 0.08);
-
+                0 20px 60px
+                rgba(15, 23, 42, 0.10);
         }
-        .brand {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
 
-.company-logo {
-    width: 70px;
-    height: 70px;
-    object-fit: contain;
-}
 
-.company h1 {
-    margin: 0 0 8px;
-    color: #059669;
-    font-size: 28px;
-}
+        /* =========================================
+           HEADER
+        ========================================= */
 
-.company p {
-    margin: 5px 0;
-    color: #6b7280;
-    font-size: 14px;
-}
+        .invoice-header {
 
-        /* TOP */
+            padding: 40px 45px;
 
-        .top {
+            background:
+                linear-gradient(
+                    135deg,
+                    #064e3b,
+                    #047857
+                );
+
+            color: white;
 
             display: flex;
 
             justify-content: space-between;
 
-            align-items: flex-start;
+            gap: 30px;
 
-            padding-bottom: 30px;
+            align-items: center;
+        }
 
-            border-bottom: 1px solid #e5e7eb;
 
+        .brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 16px;
+        }
+
+
+        .company-logo {
+
+            width: 72px;
+
+            height: 72px;
+
+            object-fit: contain;
+
+            background: white;
+
+            padding: 7px;
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 5px 15px
+                rgba(0,0,0,0.15);
         }
 
 
         .company h1 {
 
-            margin: 0 0 8px;
+            margin: 0 0 5px;
 
-            color: #059669;
+            font-size: 27px;
 
-            font-size: 28px;
+            font-weight: 800;
 
+            letter-spacing: -0.5px;
         }
 
 
         .company p {
 
-            margin: 5px 0;
+            margin: 3px 0;
 
-            color: #6b7280;
+            color: #d1fae5;
 
-            font-size: 14px;
-
+            font-size: 13px;
         }
 
 
-        .invoice-title {
+        /* =========================================
+           INVOICE TITLE
+        ========================================= */
+
+        .invoice-heading {
 
             text-align: right;
-
         }
 
 
-        .invoice-title h2 {
+        .invoice-heading h2 {
 
-            margin: 0 0 10px;
+            margin: 0 0 8px;
 
-            font-size: 30px;
+            font-size: 34px;
 
             letter-spacing: 1px;
 
+            font-weight: 800;
         }
 
 
         .invoice-number {
 
-            color: #059669;
+            display: inline-block;
 
-            font-size: 15px;
+            padding: 7px 12px;
 
-            font-weight: 700;
+            border-radius: 8px;
 
-        }
-
-
-        /* CUSTOMER + INVOICE */
-
-        .info-section {
-
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 50px;
-
-            margin: 35px 0;
-
-        }
-
-
-        .info-section h3 {
-
-            margin: 0 0 15px;
+            background:
+                rgba(255,255,255,0.14);
 
             font-size: 14px;
 
+            font-weight: 700;
+        }
+
+
+        /* =========================================
+           BODY
+        ========================================= */
+
+        .invoice-body {
+
+            padding: 40px 45px;
+        }
+
+
+        /* =========================================
+           INFO CARDS
+        ========================================= */
+
+        .info-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 22px;
+
+            margin-bottom: 35px;
+        }
+
+
+        .info-card {
+
+            padding: 25px;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 14px;
+
+            background: #ffffff;
+        }
+
+
+        .info-card h3 {
+
+            margin: 0 0 20px;
+
+            font-size: 15px;
+
+            font-weight: 800;
+
+            color: #111827;
+        }
+
+
+        .section-label {
+
+            display: inline-block;
+
+            margin-bottom: 8px;
+
+            color: #059669;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
             text-transform: uppercase;
 
-            color: #6b7280;
-
-            letter-spacing: 0.5px;
-
+            letter-spacing: 1px;
         }
 
 
         .customer-name {
 
-            font-size: 18px;
+            margin-bottom: 15px;
+
+            font-size: 21px;
+
+            font-weight: 800;
+
+            color: #111827;
+        }
+
+
+        .info-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 11px 0;
+
+            border-bottom:
+                1px solid #f3f4f6;
+        }
+
+
+        .info-row:last-child {
+
+            border-bottom: none;
+        }
+
+
+        .info-label {
+
+            color: #6b7280;
+
+            font-size: 13px;
+        }
+
+
+        .info-value {
+
+            color: #111827;
+
+            font-size: 13px;
 
             font-weight: 700;
 
-            margin-bottom: 8px;
-
+            text-align: right;
         }
 
 
-        .info-section p {
+        /* =========================================
+           QR
+        ========================================= */
 
-            margin: 6px 0;
+        .qr-section {
 
-            font-size: 14px;
+            margin-top: 22px;
+
+            padding-top: 20px;
+
+            border-top:
+                1px solid #e5e7eb;
+
+            text-align: center;
+        }
+
+
+        .qr-title {
+
+            margin-bottom: 12px;
 
             color: #374151;
 
+            font-size: 12px;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
         }
 
 
-        /* TABLE */
+        .qr-section img {
+
+            width: 125px;
+
+            height: 125px;
+
+            padding: 7px;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 10px;
+
+            background: white;
+        }
+
+
+        .qr-note {
+
+            margin-top: 8px;
+
+            color: #9ca3af;
+
+            font-size: 11px;
+        }
+
+
+        /* =========================================
+           ITEMS HEADER
+        ========================================= */
+
+        .items-section {
+
+            margin-top: 10px;
+        }
+
+
+        .section-heading {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: flex-end;
+
+            margin-bottom: 15px;
+        }
+
+
+        .section-heading h3 {
+
+            margin: 0;
+
+            font-size: 18px;
+
+            font-weight: 800;
+        }
+
+
+        .section-heading span {
+
+            color: #6b7280;
+
+            font-size: 12px;
+        }
+
+
+        /* =========================================
+           TABLE
+        ========================================= */
+
+        .table-wrapper {
+
+            overflow-x: auto;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 12px;
+        }
+
 
         table {
 
             width: 100%;
 
+            min-width: 750px;
+
             border-collapse: collapse;
+        }
 
-            margin-top: 25px;
 
+        thead {
+
+            background: #f8fafc;
         }
 
 
         th {
 
-            background: #f3f4f6;
-
-            padding: 13px;
+            padding: 14px 15px;
 
             text-align: left;
 
-            font-size: 11px;
+            color: #64748b;
+
+            font-size: 10px;
+
+            font-weight: 800;
 
             text-transform: uppercase;
 
-            color: #374151;
+            letter-spacing: 0.7px;
 
+            border-bottom:
+                1px solid #e5e7eb;
         }
 
 
         td {
 
-            padding: 14px 13px;
+            padding: 16px 15px;
 
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom:
+                1px solid #f1f5f9;
 
-            font-size: 14px;
+            font-size: 13px;
 
+            color: #374151;
+        }
+
+
+        tbody tr:last-child td {
+
+            border-bottom: none;
+        }
+
+
+        tbody tr:hover {
+
+            background: #f8fafc;
+        }
+
+
+        .product-name {
+
+            font-weight: 700;
+
+            color: #111827;
         }
 
 
         .text-right {
 
             text-align: right;
-
         }
 
 
-        /* TOTAL */
+        .gst {
 
-        .total-section {
+            color: #2563eb;
+
+            font-weight: 700;
+        }
+
+
+        .discount {
+
+            color: #dc2626;
+
+            font-weight: 700;
+        }
+
+
+        .item-total {
+
+            color: #047857;
+
+            font-weight: 800;
+        }
+
+
+        /* =========================================
+           SUMMARY
+        ========================================= */
+
+        .summary-section {
 
             display: flex;
 
             justify-content: flex-end;
 
-            margin-top: 30px;
-
+            margin-top: 28px;
         }
 
 
-        .total-box {
+        .summary-card {
 
-            width: 320px;
+            width: 360px;
 
+            padding: 24px;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 14px;
+
+            background: #f8fafc;
         }
 
 
-        .total-row {
+        .summary-row {
 
             display: flex;
 
             justify-content: space-between;
 
-            padding: 10px 0;
+            padding: 9px 0;
 
-            color: #6b7280;
+            color: #64748b;
 
-            font-size: 14px;
-
+            font-size: 13px;
         }
 
 
@@ -291,16 +637,18 @@
 
             justify-content: space-between;
 
-            margin-top: 10px;
+            align-items: center;
 
-            padding-top: 15px;
+            margin-top: 12px;
 
-            border-top: 2px solid #111827;
+            padding-top: 18px;
 
-            font-size: 20px;
+            border-top:
+                2px solid #d1d5db;
 
-            font-weight: 700;
+            font-size: 18px;
 
+            font-weight: 800;
         }
 
 
@@ -308,138 +656,438 @@
 
             color: #059669;
 
+            font-size: 22px;
         }
 
 
-        /* FOOTER */
+        /* =========================================
+           FOOTER
+        ========================================= */
 
-        .footer {
+        .invoice-footer {
 
-            margin-top: 60px;
+            margin-top: 45px;
 
-            padding-top: 20px;
+            padding-top: 22px;
 
-            border-top: 1px solid #e5e7eb;
+            border-top:
+                1px solid #e5e7eb;
 
             text-align: center;
-
-            color: #6b7280;
-
-            font-size: 13px;
-
         }
 
 
-        /* PRINT BUTTON */
+        .invoice-footer p {
 
-        .print-actions {
+            margin: 5px 0;
 
-            max-width: 900px;
+            color: #9ca3af;
 
-            margin: 0 auto 20px;
-
-            text-align: right;
-
+            font-size: 12px;
         }
 
 
-        .print-btn {
+        .invoice-footer strong {
 
-            padding: 11px 20px;
-
-            border: none;
-
-            border-radius: 8px;
-
-            background: #059669;
-
-            color: white;
-
-            font-size: 14px;
-
-            font-weight: 600;
-
-            cursor: pointer;
-
+            color: #374151;
         }
 
 
-        .print-btn:hover {
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
 
-            background: #047857;
-
-        }
-
-
-        /* PRINT */
-
-        @media print {
+        @media (max-width: 750px) {
 
             body {
 
-                background: white;
-
-                padding: 0;
-
+                padding: 15px;
             }
 
 
-            .print-actions {
+            .invoice-header {
 
-                display: none;
-
-            }
-
-
-            .invoice-container {
-
-                box-shadow: none;
-
-                max-width: none;
-
-                width: 100%;
-
-                padding: 30px;
-
-            }
-
-        }
-
-
-        @media (max-width: 650px) {
-
-            .invoice-container {
-
-                padding: 25px;
-
-            }
-
-
-            .top {
+                padding: 28px 25px;
 
                 flex-direction: column;
 
-                gap: 25px;
-
+                align-items: flex-start;
             }
 
 
-            .invoice-title {
+            .invoice-heading {
 
                 text-align: left;
-
             }
 
 
-            .info-section {
+            .invoice-heading h2 {
+
+                font-size: 28px;
+            }
+
+
+            .invoice-body {
+
+                padding: 28px 22px;
+            }
+
+
+            .info-grid {
 
                 grid-template-columns: 1fr;
+            }
 
-                gap: 25px;
 
+            .summary-section {
+
+                justify-content: stretch;
+            }
+
+
+            .summary-card {
+
+                width: 100%;
             }
 
         }
+
+
+        /* =========================================
+           PRINT
+        ========================================= */
+
+        @media print {
+
+    @page {
+        size: A4 portrait;
+        margin: 8mm;
+    }
+
+
+    html,
+    body {
+
+        width: 100%;
+
+        margin: 0;
+
+        padding: 0;
+
+        background: white;
+
+        font-size: 10px;
+
+        -webkit-print-color-adjust: exact;
+
+        print-color-adjust: exact;
+    }
+
+
+    .print-actions {
+
+        display: none !important;
+    }
+
+
+    .invoice-container {
+
+        width: 100%;
+
+        max-width: none;
+
+        margin: 0;
+
+        border-radius: 0;
+
+        box-shadow: none;
+
+        overflow: visible;
+    }
+
+
+    .invoice-header {
+
+        padding: 18px 25px;
+
+        border-radius: 0;
+
+        -webkit-print-color-adjust: exact;
+
+        print-color-adjust: exact;
+    }
+
+
+    .company-logo {
+
+        width: 52px;
+
+        height: 52px;
+    }
+
+
+    .company h1 {
+
+        font-size: 20px;
+    }
+
+
+    .company p {
+
+        font-size: 9px;
+    }
+
+
+    .invoice-heading h2 {
+
+        font-size: 25px;
+    }
+
+
+    .invoice-number {
+
+        font-size: 10px;
+
+        padding: 5px 9px;
+    }
+
+
+    .invoice-body {
+
+        padding: 18px 25px;
+    }
+
+
+    .info-grid {
+
+        gap: 12px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .info-card {
+
+        padding: 15px;
+
+        border-radius: 8px;
+    }
+
+
+    .info-card h3 {
+
+        margin-bottom: 10px;
+
+        font-size: 12px;
+    }
+
+
+    .section-label {
+
+        margin-bottom: 5px;
+
+        font-size: 8px;
+    }
+
+
+    .customer-name {
+
+        margin-bottom: 8px;
+
+        font-size: 16px;
+    }
+
+
+    .info-row {
+
+        padding: 6px 0;
+    }
+
+
+    .info-label,
+    .info-value {
+
+        font-size: 9px;
+    }
+
+
+    /* QR */
+
+    .qr-section {
+
+        margin-top: 10px;
+
+        padding-top: 10px;
+    }
+
+
+    .qr-title {
+
+        margin-bottom: 5px;
+
+        font-size: 8px;
+    }
+
+
+    .qr-section img {
+
+        width: 80px;
+
+        height: 80px;
+
+        padding: 4px;
+    }
+
+
+    .qr-note {
+
+        margin-top: 3px;
+
+        font-size: 8px;
+    }
+
+
+    /* ITEMS */
+
+    .items-section {
+
+        margin-top: 5px;
+    }
+
+
+    .section-heading {
+
+        margin-bottom: 7px;
+    }
+
+
+    .section-heading h3 {
+
+        font-size: 13px;
+    }
+
+
+    .section-heading span {
+
+        font-size: 8px;
+    }
+
+
+    .table-wrapper {
+
+        overflow: visible;
+
+        border-radius: 6px;
+    }
+
+
+    table {
+
+        width: 100%;
+
+        min-width: 0;
+    }
+
+
+    th {
+
+        padding: 7px 6px;
+
+        font-size: 7px;
+    }
+
+
+    td {
+
+        padding: 8px 6px;
+
+        font-size: 8px;
+    }
+
+
+    /* SUMMARY */
+
+    .summary-section {
+
+        margin-top: 12px;
+    }
+
+
+    .summary-card {
+
+        width: 300px;
+
+        padding: 12px;
+
+        border-radius: 8px;
+    }
+
+
+    .summary-row {
+
+        padding: 5px 0;
+
+        font-size: 9px;
+    }
+
+
+    .grand-total {
+
+        margin-top: 6px;
+
+        padding-top: 8px;
+
+        font-size: 13px;
+    }
+
+
+    .grand-total span:last-child {
+
+        font-size: 16px;
+    }
+
+
+    /* FOOTER */
+
+    .invoice-footer {
+
+        margin-top: 18px;
+
+        padding-top: 10px;
+    }
+
+
+    .invoice-footer p {
+
+        margin: 3px 0;
+
+        font-size: 8px;
+    }
+
+
+    /* Prevent individual sections from splitting */
+
+    .info-card,
+    .items-section,
+    .summary-card,
+    .invoice-footer {
+
+        break-inside: avoid;
+
+        page-break-inside: avoid;
+    }
+
+
+    /* Keep table together where possible */
+
+    tr {
+
+        break-inside: avoid;
+
+        page-break-inside: avoid;
+    }
+
+}
 
     </style>
 
@@ -447,6 +1095,9 @@
 
 
 <body>
+
+
+<div class="page-wrapper">
 
 
     <!-- PRINT BUTTON -->
@@ -457,9 +1108,7 @@
             onclick="window.print()"
             class="print-btn"
         >
-
             🖨 Print Invoice
-
         </button>
 
     </div>
@@ -470,268 +1119,425 @@
     <div class="invoice-container">
 
 
-        <!-- COMPANY + INVOICE HEADER -->
+        <!-- =====================================
+             HEADER
+        ====================================== -->
 
-        <div class="top">
+        <div class="invoice-header">
 
 
-            <div class="company">
+            <div class="brand">
 
-    <div class="brand">
+                <img
+                    src="{% static 'img/logo.png' %}"
+                    alt="Advance Billing System Logo"
+                    class="company-logo"
+                >
 
-        <img
-            src="{% static 'img/logo.png' %}"
-            alt="Advance Billing System Logo"
-            class="company-logo"
-        >
 
-        <div>
+                <div class="company">
 
-            <h1>
-                Advance Billing System
-            </h1>
+                    <h1>
+                        Advance Billing System
+                    </h1>
 
-            <p>
-                Professional Billing & Invoice Management
-            </p>
+                    <p>
+                        Professional Billing & Invoice Management
+                    </p>
 
-            <p>
-                Thank you for your business.
-            </p>
+                    <p>
+                        Thank you for your business.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="invoice-heading">
+
+                <h2>
+                    INVOICE
+                </h2>
+
+                <div class="invoice-number">
+
+                    #{{ invoice.invoice_number }}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =====================================
+             BODY
+        ====================================== -->
+
+        <div class="invoice-body">
+
+
+            <!-- CUSTOMER + INVOICE -->
+
+            <div class="info-grid">
+
+
+                <!-- CUSTOMER -->
+
+                <div class="info-card">
+
+                    <span class="section-label">
+                        Billed To
+                    </span>
+
+
+                    <div class="customer-name">
+
+                        {{ invoice.customer.name }}
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Email
+                        </span>
+
+                        <span class="info-value">
+                            {{ invoice.customer.email }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Phone
+                        </span>
+
+                        <span class="info-value">
+                            {{ invoice.customer.phone }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Address
+                        </span>
+
+                        <span class="info-value">
+                            {{ invoice.customer.address }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- INVOICE INFORMATION -->
+
+                <div class="info-card">
+
+                    <span class="section-label">
+                        Invoice Information
+                    </span>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Invoice Number
+                        </span>
+
+                        <span class="info-value">
+                            {{ invoice.invoice_number }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Invoice Date
+                        </span>
+
+                        <span class="info-value">
+                            {{ invoice.invoice_date|date:"d M Y" }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Created
+                        </span>
+
+                        <span class="info-value">
+                            {{ invoice.created_at|date:"d M Y, h:i A" }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Total Products
+                        </span>
+
+                        <span class="info-value">
+                            {{ invoice.items.count }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- QR CODE -->
+
+                    <div class="qr-section">
+                        <div class="qr-title">
+                            Scan Invoice QR
+                        </div>
+
+                        {% if qr_code %}
+                            <img
+                                src="data:image/png;base64,{{ qr_code }}"
+                                alt="QR code for invoice {{ invoice.invoice_number }}"
+                                width="125"
+                                height="125"
+                            >
+
+                            <div class="qr-note">
+                                Scan to view invoice details — {{ invoice.invoice_number }}
+                            </div>
+                        {% else %}
+                            <div class="qr-note">
+                                QR code unavailable.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================
+                 ITEMS
+            ====================================== -->
+
+            <div class="items-section">
+
+
+                <div class="section-heading">
+
+                    <h3>
+                        Invoice Items
+                    </h3>
+
+                    <span>
+                        {{ invoice.items.count }} product{{ invoice.items.count|pluralize }}
+                    </span>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    #
+                                </th>
+
+                                <th>
+                                    Product
+                                </th>
+
+                                <th class="text-right">
+                                    Price
+                                </th>
+
+                                <th class="text-right">
+                                    Qty
+                                </th>
+
+                                <th class="text-right">
+                                    GST
+                                </th>
+
+                                <th class="text-right">
+                                    Discount
+                                </th>
+
+                                <th class="text-right">
+                                    Total
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for item in invoice.items.all %}
+
+                            <tr>
+
+                                <td>
+                                    {{ forloop.counter }}
+                                </td>
+
+
+                                <td class="product-name">
+
+                                    {{ item.product.name }}
+
+                                </td>
+
+
+                                <td class="text-right">
+
+                                    ₹{{ item.price }}
+
+                                </td>
+
+
+                                <td class="text-right">
+
+                                    {{ item.quantity }}
+
+                                </td>
+
+
+                                <td class="text-right gst">
+
+                                    {{ item.gst_rate }}%
+
+                                </td>
+
+
+                                <td class="text-right discount">
+
+                                    {{ item.discount }}%
+
+                                </td>
+
+
+                                <td class="text-right item-total">
+
+                                    ₹{{ item.total }}
+
+                                </td>
+
+                            </tr>
+
+
+                            {% empty %}
+
+                            <tr>
+
+                                <td
+                                    colspan="7"
+                                    style="text-align:center;"
+                                >
+
+                                    No products found in this invoice.
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================
+                 SUMMARY
+            ====================================== -->
+
+            <div class="summary-section">
+
+                <div class="summary-card">
+
+
+                    <div class="summary-row">
+
+                        <span>
+                            Total Products
+                        </span>
+
+                        <span>
+                            {{ invoice.items.count }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="grand-total">
+
+                        <span>
+                            Grand Total
+                        </span>
+
+                        <span>
+                            ₹{{ invoice.total_amount }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================
+                 FOOTER
+            ====================================== -->
+
+            <div class="invoice-footer">
+
+                <p>
+                    This is a computer-generated invoice.
+                </p>
+
+                <p>
+                    Thank you for choosing
+                    <strong>
+                        Advance Billing System
+                    </strong>
+                </p>
+
+            </div>
+
 
         </div>
 
     </div>
 
 </div>
-       {{ invoice.customer.name }}
-
-                </div>
-
-
-                <p>
-
-                    {{ invoice.customer.email }}
-
-                </p>
-
-
-                <p>
-
-                    {{ invoice.customer.phone }}
-
-                </p>
-
-
-                <p>
-
-                    {{ invoice.customer.address }}
-
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-
-                    Invoice Details
-
-                </h3>
-
-
-                <p>
-
-                    <strong>Invoice Number:</strong>
-
-                    {{ invoice.invoice_number }}
-
-                </p>
-
-
-                <p>
-
-                    <strong>Date:</strong>
-
-                    {{ invoice.invoice_date|date:"d M Y" }}
-
-                </p>
-
-
-                <p>
-
-                    <strong>Created:</strong>
-
-                    {{ invoice.created_at|date:"d M Y, h:i A" }}
-
-                </p>
-
-            </div>
-
-
-        </div>
-
-
-        <!-- PRODUCTS TABLE -->
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>#</th>
-
-                    <th>Product</th>
-
-                    <th class="text-right">Price</th>
-
-                    <th class="text-right">Qty</th>
-
-                    <th class="text-right">GST</th>
-
-                    <th class="text-right">Discount</th>
-
-                    <th class="text-right">Total</th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-
-                {% for item in invoice.items.all %}
-
-                <tr>
-
-                    <td>
-
-                        {{ forloop.counter }}
-
-                    </td>
-
-
-                    <td>
-
-                        {{ item.product.name }}
-
-                    </td>
-
-
-                    <td class="text-right">
-
-                        ₹{{ item.price }}
-
-                    </td>
-
-
-                    <td class="text-right">
-
-                        {{ item.quantity }}
-
-                    </td>
-
-
-                    <td class="text-right">
-
-                        {{ item.gst_rate }}%
-
-                    </td>
-
-
-                    <td class="text-right">
-
-                        {{ item.discount }}%
-
-                    </td>
-
-
-                    <td class="text-right">
-
-                        ₹{{ item.total }}
-
-                    </td>
-
-                </tr>
-
-
-                {% endfor %}
-
-
-            </tbody>
-
-        </table>
-
-
-        <!-- TOTAL -->
-
-        <div class="total-section">
-
-            <div class="total-box">
-
-
-                <div class="total-row">
-
-                    <span>
-
-                        Total Products
-
-                    </span>
-
-                    <span>
-
-                        {{ invoice.items.count }}
-
-                    </span>
-
-                </div>
-
-
-                <div class="grand-total">
-
-                    <span>
-
-                        Grand Total
-
-                    </span>
-
-                    <span>
-
-                        ₹{{ invoice.total_amount }}
-
-                    </span>
-
-                </div>
-
-
-            </div>
-
-        </div>
-
-
-        <!-- FOOTER -->
-
-        <div class="footer">
-
-            <p>
-
-                This is a computer-generated invoice.
-
-            </p>
-
-            <p>
-
-                Advance Billing System
-
-            </p>
-
-        </div>
-
-
-    </div>
 
 
 </body>

@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 from decimal import Decimal, InvalidOperation
 from django.core.paginator import Paginator
 from django.db.models import Sum
+from .qr_utils import generate_invoice_qr
 
 # Create your views here.
 
@@ -1538,13 +1539,12 @@ def add_product(request):
         # CREATE PRODUCT
 
         Product.objects.create(
-
+            distributor=request.user,
             name=name,
             category=category,
             price=price,
             stock=stock,
             gst_rate=gst_rate
-
         )
 
 
@@ -1566,7 +1566,7 @@ def product_list(request):
 
     search_query = request.GET.get('search', '')
 
-    products = Product.objects.all().order_by('-created_at')
+    products = Product.objects.filter(distributor=request.user).order_by('-created_at')
 
     if search_query:
 
@@ -1598,7 +1598,8 @@ def edit_product(request, product_id):
 
     product = get_object_or_404(
         Product,
-        id=product_id
+        id=product_id,
+        distributor=request.user
     )
 
     if request.method == 'POST':
@@ -1752,7 +1753,8 @@ def delete_product(request, product_id):
 
     product = get_object_or_404(
         Product,
-        id=product_id
+        id=product_id,
+        distributor=request.user
     )
 
     if request.method == 'POST':
@@ -1779,8 +1781,13 @@ def delete_product(request, product_id):
 @login_required
 def create_invoice(request):
 
-    customers = Customer.objects.all()
-    products = Product.objects.all()
+    customers = Customer.objects.filter(
+        distributor=request.user
+    )
+
+    products = Product.objects.filter(
+        distributor=request.user
+    )
 
     if request.method == 'POST':
 
@@ -1807,7 +1814,8 @@ def create_invoice(request):
 
         customer = get_object_or_404(
             Customer,
-            id=customer_id
+            id=customer_id,
+            distributor=request.user
         )
 
 
@@ -1844,11 +1852,9 @@ def create_invoice(request):
                 # Create invoice first
 
                 invoice = Invoice.objects.create(
-
+                    distributor=request.user,
                     customer=customer,
-
                     invoice_number=invoice_number,
-
                     total_amount=Decimal('0.00')
 
                 )
@@ -1869,7 +1875,8 @@ def create_invoice(request):
 
                     product = get_object_or_404(
                         Product,
-                        id=product_id
+                        id=product_id,
+                        distributor=request.user
                     )
 
 
@@ -2000,24 +2007,32 @@ def create_invoice(request):
 @login_required
 def invoice_list(request):
 
-    invoices = Invoice.objects.select_related(
-        'customer'
-    ).order_by('-created_at')
-
+    invoices = (
+    Invoice.objects
+    .filter(distributor=request.user)
+    .select_related('customer')
+    .prefetch_related('items__product')
+    .order_by('-created_at')
+)
 
     total_billing = invoices.aggregate(
         total=Sum('total_amount')
     )['total'] or 0
 
+    latest_invoice = invoices.first()
+
+    paginator = Paginator(invoices, 5)
+
+    page_number = request.GET.get('page')
+
+    page_obj = paginator.get_page(page_number)
 
     context = {
-
-        'invoices': invoices,
-
-        'total_billing': total_billing
-
+        'invoices': page_obj,
+        'page_obj': page_obj,
+        'total_billing': total_billing,
+        'latest_invoice': latest_invoice,
     }
-
 
     return render(
         request,
@@ -2030,14 +2045,18 @@ def invoice_list(request):
 def invoice_detail(request, invoice_id):
 
     invoice = get_object_or_404(
-        Invoice.objects.select_related('customer').prefetch_related(
-            'items__product'
-        ),
-        id=invoice_id
+        Invoice.objects
+        .select_related('customer')
+        .prefetch_related('items__product'),
+        id=invoice_id,
+        distributor=request.user
     )
 
+    qr_code = generate_invoice_qr(invoice)
+
     context = {
-        'invoice': invoice
+        'invoice': invoice,
+        'qr_code': qr_code,
     }
 
     return render(
@@ -2048,7 +2067,6 @@ def invoice_detail(request, invoice_id):
     
 @login_required
 def print_invoice(request, invoice_id):
-
     invoice = get_object_or_404(
         Invoice.objects.select_related(
             'customer'
@@ -2058,8 +2076,11 @@ def print_invoice(request, invoice_id):
         id=invoice_id
     )
 
+    qr_code = generate_invoice_qr(invoice)
+
     context = {
-        'invoice': invoice
+        'invoice': invoice,
+        'qr_code': qr_code,
     }
 
     return render(

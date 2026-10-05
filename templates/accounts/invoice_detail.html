@@ -1,415 +1,350 @@
 {% extends 'accounts/base.html' %}
 
-
 {% block title %}
-
 Invoice {{ invoice.invoice_number }} | Advance Billing System
-
 {% endblock %}
 
 
 {% block extra_css %}
 
 <style>
-    .page {
 
+    .page {
         max-width: 1200px;
         margin: 40px auto;
         padding: 0 20px;
-
     }
 
 
     /* HEADER */
 
     .page-header {
-
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 20px;
         margin-bottom: 25px;
-
     }
+
 
     .back-link {
-
         display: inline-flex;
         align-items: center;
-
         margin-bottom: 12px;
-
         color: #059669;
         text-decoration: none;
-
         font-size: 14px;
         font-weight: 600;
-
     }
+
 
     .back-link:hover {
-
         text-decoration: underline;
-
     }
+
 
     .page-header h1 {
-
         margin: 0 0 8px;
-
         font-size: 30px;
         color: #111827;
-
     }
 
+
     .page-header p {
-
         margin: 0;
-
         color: #6b7280;
         font-size: 14px;
-
     }
 
 
     /* STATUS */
 
     .status {
-
         display: inline-flex;
         align-items: center;
         gap: 7px;
-
         padding: 9px 14px;
-
         border-radius: 20px;
-
         background: #ecfdf5;
         color: #047857;
-
         font-size: 13px;
         font-weight: 600;
-
     }
 
-    .status-dot {
 
+    .status-dot {
         width: 8px;
         height: 8px;
-
         border-radius: 50%;
-
         background: #10b981;
+    }
 
+
+    /* HEADER ACTIONS */
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+
+    .print-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 16px;
+        background: #059669;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+
+    .print-btn:hover {
+        background: #047857;
     }
 
 
     /* INFO GRID */
 
     .info-grid {
-
         display: grid;
-
         grid-template-columns: repeat(2, 1fr);
-
         gap: 20px;
-
         margin-bottom: 25px;
-
     }
+
 
     .info-card {
-
         background: white;
-
         padding: 25px;
-
         border-radius: 14px;
-
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
-
     }
+
 
     .info-card h3 {
-
         margin: 0 0 20px;
-
         font-size: 17px;
         color: #111827;
-
     }
 
-    .info-row {
 
+    .info-row {
         display: flex;
         justify-content: space-between;
         gap: 20px;
-
         padding: 13px 0;
-
         border-bottom: 1px solid #f1f1f1;
-
     }
+
 
     .info-row:last-child {
-
         border-bottom: none;
-
     }
+
 
     .info-label {
-
         color: #6b7280;
         font-size: 14px;
-
     }
 
-    .info-value {
 
+    .info-value {
         color: #111827;
         font-size: 14px;
         font-weight: 600;
-
         text-align: right;
+    }
 
+
+    /* QR CODE */
+
+    .invoice-qr {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+    }
+
+
+    .invoice-qr-title {
+        margin-bottom: 10px;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+    .invoice-qr img {
+        width: 150px;
+        height: 150px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+
+    .invoice-qr-note {
+        margin-top: 8px;
+        color: #6b7280;
+        font-size: 12px;
     }
 
 
     /* ITEMS CARD */
 
     .items-card {
-
         background: white;
-
         border-radius: 14px;
-
         overflow: hidden;
-
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
-
     }
+
 
     .items-header {
-
         padding: 22px 25px;
-
         border-bottom: 1px solid #e5e7eb;
-
     }
+
 
     .items-header h2 {
-
         margin: 0 0 5px;
-
         font-size: 19px;
         color: #111827;
-
     }
 
+
     .items-header p {
-
         margin: 0;
-
         color: #6b7280;
         font-size: 13px;
-
     }
 
 
     /* TABLE */
 
     .table-wrapper {
-
         overflow-x: auto;
-
     }
+
 
     table {
-
         width: 100%;
         min-width: 900px;
-
         border-collapse: collapse;
-
     }
+
 
     th {
-
         background: #f9fafb;
-
         color: #6b7280;
-
         font-size: 11px;
         text-transform: uppercase;
-
         letter-spacing: 0.5px;
-
     }
+
 
     th,
     td {
-
         padding: 16px 20px;
-
         text-align: left;
-
         border-bottom: 1px solid #f0f1f3;
-
     }
+
 
     td {
-
         font-size: 14px;
         color: #374151;
-
     }
+
 
     tbody tr:hover {
-
         background: #fafafa;
-
     }
+
 
     tbody tr:last-child td {
-
         border-bottom: none;
-
     }
+
 
     .product-name {
-
         font-weight: 600;
         color: #111827;
-
     }
+
 
     .price {
-
         color: #374151;
-
     }
+
 
     .gst {
-
         color: #2563eb;
         font-weight: 600;
-
     }
+
 
     .discount {
-
         color: #dc2626;
         font-weight: 600;
-
     }
 
-    .item-total {
 
+    .item-total {
         color: #047857;
         font-weight: 700;
-
     }
 
 
     /* TOTAL CARD */
 
     .summary {
-
         display: flex;
         justify-content: flex-end;
-
         margin-top: 25px;
-
     }
+
 
     .summary-card {
-
         width: 100%;
         max-width: 380px;
-
         background: white;
-
         padding: 25px;
-
         border-radius: 14px;
-
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
-
     }
+
 
     .summary-row {
-
         display: flex;
         justify-content: space-between;
-
         padding: 12px 0;
-
         color: #6b7280;
-
         font-size: 14px;
-
     }
+
 
     .summary-total {
-
         display: flex;
         justify-content: space-between;
-
         margin-top: 10px;
         padding-top: 18px;
-
         border-top: 1px solid #e5e7eb;
-
         font-size: 19px;
         font-weight: 700;
-
         color: #111827;
-
     }
+
 
     .summary-total span:last-child {
-
         color: #059669;
-
     }
-
-    /* Print the Invoice */
-    .header-actions {
-
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-}
-
-
-.print-btn {
-
-    display: inline-flex;
-    align-items: center;
-
-    padding: 10px 16px;
-
-    background: #059669;
-    color: white;
-
-    text-decoration: none;
-
-    border-radius: 8px;
-
-    font-size: 14px;
-    font-weight: 600;
-
-    transition: 0.2s;
-
-}
-
-
-.print-btn:hover {
-
-    background: #047857;
-
-}
 
 
     /* RESPONSIVE */
@@ -417,24 +352,21 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
     @media (max-width: 750px) {
 
         .page {
-
             margin-top: 25px;
-
         }
+
 
         .page-header {
-
             flex-direction: column;
-
         }
 
+
         .info-grid {
-
             grid-template-columns: 1fr;
-
         }
 
     }
+
 </style>
 
 {% endblock %}
@@ -451,41 +383,46 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
 
         <div>
 
-            <a href="{% url 'invoice_list' %}" class="back-link">
-
+            <a
+                href="{% url 'invoice_list' %}"
+                class="back-link"
+            >
                 ← Back to Invoices
-
             </a>
 
 
             <h1>
-
                 Invoice {{ invoice.invoice_number }}
-
             </h1>
 
 
             <p>
-
                 View complete invoice and product details.
-
             </p>
 
         </div>
 
 
-        <div class="status">
+        <div class="header-actions">
 
-            <span class="status-dot"></span>
+            <div class="status">
 
-            Created
+                <span class="status-dot"></span>
+
+                Created
+
+            </div>
+
+
+            <a
+                href="{% url 'print_invoice' invoice.id %}"
+                class="print-btn"
+                target="_blank"
+            >
+                🖨 Print Invoice
+            </a>
 
         </div>
-        <a href="{% url 'print_invoice' invoice.id %}" class="print-btn" target="_blank">
-
-            🖨 Print Invoice
-
-        </a>
 
     </div>
 
@@ -500,24 +437,18 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
         <div class="info-card">
 
             <h3>
-
                 Customer Information
-
             </h3>
 
 
             <div class="info-row">
 
                 <span class="info-label">
-
                     Name
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.customer.name }}
-
                 </span>
 
             </div>
@@ -526,15 +457,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="info-row">
 
                 <span class="info-label">
-
                     Email
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.customer.email }}
-
                 </span>
 
             </div>
@@ -543,15 +470,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="info-row">
 
                 <span class="info-label">
-
                     Phone
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.customer.phone }}
-
                 </span>
 
             </div>
@@ -560,15 +483,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="info-row">
 
                 <span class="info-label">
-
                     Address
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.customer.address }}
-
                 </span>
 
             </div>
@@ -581,24 +500,18 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
         <div class="info-card">
 
             <h3>
-
                 Invoice Information
-
             </h3>
 
 
             <div class="info-row">
 
                 <span class="info-label">
-
                     Invoice Number
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.invoice_number }}
-
                 </span>
 
             </div>
@@ -607,15 +520,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="info-row">
 
                 <span class="info-label">
-
                     Invoice Date
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.invoice_date|date:"d M Y" }}
-
                 </span>
 
             </div>
@@ -624,15 +533,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="info-row">
 
                 <span class="info-label">
-
                     Created At
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.created_at|date:"d M Y, h:i A" }}
-
                 </span>
 
             </div>
@@ -641,16 +546,43 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="info-row">
 
                 <span class="info-label">
-
                     Total Items
-
                 </span>
 
                 <span class="info-value">
-
                     {{ invoice.items.count }}
-
                 </span>
+
+            </div>
+
+
+            <!-- QR CODE -->
+
+            <div class="invoice-qr">
+
+                <div class="invoice-qr-title">
+                    Scan Invoice QR Code
+                </div>
+
+
+                {% if qr_code %}
+
+                    <img
+                        src="data:image/png;base64,{{ qr_code }}"
+                        alt="Invoice QR Code"
+                    >
+
+                    <div class="invoice-qr-note">
+                        Invoice {{ invoice.invoice_number }}
+                    </div>
+
+                {% else %}
+
+                    <div class="invoice-qr-note">
+                        QR code unavailable.
+                    </div>
+
+                {% endif %}
 
             </div>
 
@@ -666,15 +598,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
         <div class="items-header">
 
             <h2>
-
                 Invoice Items
-
             </h2>
 
             <p>
-
                 Products included in this invoice.
-
             </p>
 
         </div>
@@ -714,54 +642,41 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
                     <tr>
 
                         <td>
-
                             {{ forloop.counter }}
-
                         </td>
 
 
                         <td class="product-name">
-
                             {{ item.product.name }}
-
                         </td>
 
 
                         <td class="price">
-
                             ₹{{ item.price }}
-
                         </td>
 
 
                         <td>
-
                             {{ item.quantity }}
-
                         </td>
 
 
                         <td class="gst">
-
                             {{ item.gst_rate }}%
-
                         </td>
 
 
                         <td class="discount">
-
                             {{ item.discount }}%
-
                         </td>
 
 
                         <td class="item-total">
-
                             ₹{{ item.total }}
-
                         </td>
 
                     </tr>
+
 
                     {% empty %}
 
@@ -795,15 +710,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="summary-row">
 
                 <span>
-
                     Total Items
-
                 </span>
 
                 <span>
-
                     {{ invoice.items.count }}
-
                 </span>
 
             </div>
@@ -812,15 +723,11 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <div class="summary-total">
 
                 <span>
-
                     Grand Total
-
                 </span>
 
                 <span>
-
                     ₹{{ invoice.total_amount }}
-
                 </span>
 
             </div>
