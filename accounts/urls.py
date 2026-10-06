@@ -27,5 +27,18 @@ urlpatterns = [
     path('invoices/',views.invoice_list,name='invoice_list'),
     path('invoices/<int:invoice_id>/',views.invoice_detail,name='invoice_detail'),
     path('invoices/<int:invoice_id>/print/',views.print_invoice,name='print_invoice'),
+    path('invoice/<int:invoice_id>/download/',views.download_invoice_pdf,name='download_invoice_pdf'),
+    #admin register api
+    path(
+    'accounts/admin/register/',
+    views.admin_register,
+    name='admin_register'
+),
+
+path(
+    'api/admin/register/',
+    views.admin_register_api,
+    name='admin_register_api'
+),
     path('logout/',views.logout_view,name='logout'),
 ]

@@ -422,6 +422,13 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
                 🖨 Print Invoice
             </a>
 
+            <a
+                href="{% url 'download_invoice_pdf' invoice.id %}"
+                class="btn btn-primary"
+            >
+                Download Invoice PDF
+            </a>
+
         </div>
 
     </div>

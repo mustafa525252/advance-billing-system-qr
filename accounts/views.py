@@ -17,6 +17,13 @@ from decimal import Decimal, InvalidOperation
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from .qr_utils import generate_invoice_qr
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # Create your views here.
 
@@ -2087,4 +2094,419 @@ def print_invoice(request, invoice_id):
         request,
         'accounts/print_invoice.html',
         context
+    )
+    
+@login_required
+def download_invoice_pdf(request, invoice_id):
+    invoice = get_object_or_404(
+        Invoice.objects
+        .select_related('customer')
+        .prefetch_related('items__product'),
+        id=invoice_id,
+        distributor=request.user
+    )
+
+    response = HttpResponse(
+        content_type='application/pdf'
+    )
+
+    response['Content-Disposition'] = (
+        f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+    )
+
+    pdf = canvas.Canvas(
+        response,
+        pagesize=A4
+    )
+
+    width, height = A4
+
+    # -------------------------
+    # Invoice Header
+    # -------------------------
+    pdf.setFont('Helvetica-Bold', 18)
+    pdf.drawString(
+        50,
+        height - 50,
+        'INVOICE'
+    )
+
+    pdf.setFont('Helvetica', 10)
+
+    pdf.drawString(
+        50,
+        height - 75,
+        f'Invoice No: {invoice.invoice_number}'
+    )
+
+    pdf.drawString(
+        50,
+        height - 90,
+        f'Date: {invoice.created_at.strftime("%d-%m-%Y")}'
+    )
+
+    # -------------------------
+    # Customer Details
+    # -------------------------
+    y = height - 130
+
+    pdf.setFont('Helvetica-Bold', 12)
+    pdf.drawString(
+        50,
+        y,
+        'Customer Details'
+    )
+
+    y -= 20
+
+    pdf.setFont('Helvetica', 10)
+
+    pdf.drawString(
+        50,
+        y,
+        f'Name: {invoice.customer.name}'
+    )
+
+    y -= 15
+
+    pdf.drawString(
+        50,
+        y,
+        f'Email: {invoice.customer.email}'
+    )
+
+    y -= 15
+
+    pdf.drawString(
+        50,
+        y,
+        f'Phone: {invoice.customer.phone}'
+    )
+
+    y -= 15
+
+    pdf.drawString(
+        50,
+        y,
+        f'Address: {invoice.customer.address}'
+    )
+
+    # -------------------------
+    # Product Table Header
+    # -------------------------
+    y -= 40
+
+    pdf.setFont('Helvetica-Bold', 10)
+
+    pdf.drawString(50, y, 'Product')
+    pdf.drawString(250, y, 'Qty')
+    pdf.drawString(300, y, 'Price')
+    pdf.drawString(380, y, 'GST')
+    pdf.drawString(440, y, 'Discount')
+    pdf.drawString(510, y, 'Total')
+
+    y -= 15
+
+    pdf.line(
+        50,
+        y,
+        550,
+        y
+    )
+
+    y -= 20
+
+    # -------------------------
+    # Invoice Items
+    # -------------------------
+    pdf.setFont('Helvetica', 9)
+
+    for item in invoice.items.all():
+
+        pdf.drawString(
+            50,
+            y,
+            str(item.product.name)[:30]
+        )
+
+        pdf.drawString(
+            250,
+            y,
+            str(item.quantity)
+        )
+
+        pdf.drawString(
+            300,
+            y,
+            f'{item.price:.2f}'
+        )
+
+        pdf.drawString(
+            380,
+            y,
+            f'{item.gst_rate:.2f}%'
+        )
+
+        pdf.drawString(
+            440,
+            y,
+            f'{item.discount:.2f}%'
+        )
+
+        pdf.drawString(
+            510,
+            y,
+            f'{item.total:.2f}'
+        )
+
+        y -= 20
+
+        # Start a new page if necessary
+        if y < 80:
+            pdf.showPage()
+            y = height - 50
+            pdf.setFont('Helvetica', 9)
+
+    # -------------------------
+    # Grand Total
+    # -------------------------
+    y -= 15
+
+    pdf.line(
+        400,
+        y,
+        550,
+        y
+    )
+
+    y -= 25
+
+    pdf.setFont(
+        'Helvetica-Bold',
+        12
+    )
+
+    pdf.drawString(
+        400,
+        y,
+        'Grand Total:'
+    )
+
+    pdf.drawString(
+        510,
+        y,
+        f'{invoice.total_amount:.2f}'
+    )
+
+    # -------------------------
+    # Finish PDF
+    # -------------------------
+    pdf.showPage()
+    pdf.save()
+
+    return response
+
+
+@csrf_exempt
+def admin_register_api(request):
+
+    if request.method != 'POST':
+        return JsonResponse(
+            {
+                'success': False,
+                'message': 'Only POST requests are allowed.'
+            },
+            status=405
+        )
+
+    try:
+        data = json.loads(request.body)
+
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        confirm_password = data.get('confirm_password', '')
+
+        # -------------------------
+        # Name validation
+        # -------------------------
+        if not name:
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Full name is required.'
+                },
+                status=400
+            )
+
+        if len(name) < 3:
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Name must contain at least 3 characters.'
+                },
+                status=400
+            )
+
+        if not re.match(r'^[A-Za-z ]+$', name):
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Name can contain only letters and spaces.'
+                },
+                status=400
+            )
+
+        # -------------------------
+        # Email validation
+        # -------------------------
+        if not email:
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Email address is required.'
+                },
+                status=400
+            )
+
+        email_pattern = (
+            r'^[A-Za-z0-9._%+-]+@'
+            r'[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+        )
+
+        if not re.match(email_pattern, email):
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Please enter a valid email address.'
+                },
+                status=400
+            )
+
+        # -------------------------
+        # Password validation
+        # -------------------------
+        if not password:
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Password is required.'
+                },
+                status=400
+            )
+
+        if len(password) < 8:
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Password must contain at least 8 characters.'
+                },
+                status=400
+            )
+
+        if not re.search(r'[A-Za-z]', password):
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Password must contain at least one letter.'
+                },
+                status=400
+            )
+
+        if not re.search(r'\d', password):
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Password must contain at least one number.'
+                },
+                status=400
+            )
+
+        # -------------------------
+        # Confirm password
+        # -------------------------
+        if password != confirm_password:
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Passwords do not match.'
+                },
+                status=400
+            )
+
+        # -------------------------
+        # Duplicate email
+        # -------------------------
+        if User.objects.filter(
+            email__iexact=email
+        ).exists():
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'This email is already registered.'
+                },
+                status=400
+            )
+
+        # -------------------------
+        # Create username
+        # -------------------------
+        username = email.split('@')[0]
+
+        original_username = username
+        counter = 1
+
+        while User.objects.filter(
+            username=username
+        ).exists():
+            username = f'{original_username}{counter}'
+            counter += 1
+
+        # -------------------------
+        # Create Admin User
+        # -------------------------
+        user = User.objects.create_user(
+            username=username,
+            first_name=name,
+            email=email,
+            password=password,
+            is_staff=True
+        )
+
+        return JsonResponse(
+            {
+                'success': True,
+                'message': 'Admin user registered successfully.',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.first_name,
+                    'email': user.email
+                }
+            },
+            status=201
+        )
+
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {
+                'success': False,
+                'message': 'Invalid JSON data.'
+            },
+            status=400
+        )
+
+    except Exception as error:
+        return JsonResponse(
+            {
+                'success': False,
+                'message': 'Unable to register admin user.'
+            },
+            status=500
+        )
+        
+def admin_register(request):
+    return render(
+        request,
+        'accounts/admin_register.html'
     )

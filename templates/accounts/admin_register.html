@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Registration</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .register-card h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .register-card p.subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+
+            border: 1px solid #ccc;
+            border-radius: 7px;
+
+            font-size: 15px;
+
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb;
+        }
+
+        .register-btn {
+            width: 100%;
+
+            padding: 13px;
+
+            border: none;
+            border-radius: 7px;
+
+            background: #2563eb;
+            color: white;
+
+            font-size: 16px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .register-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .register-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .message {
+            display: none;
+
+            padding: 12px;
+
+            margin-bottom: 20px;
+
+            border-radius: 7px;
+
+            font-size: 14px;
+        }
+
+        .message.success {
+            display: block;
+
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .message.error {
+            display: block;
+
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-link a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="register-container">
+
+    <div class="register-card">
+
+        <h1>Admin Registration</h1>
+
+        <p class="subtitle">
+            Create a new administrator account
+        </p>
+
+        <!-- API response message -->
+        <div id="message" class="message"></div>
+
+        <form id="adminRegisterForm">
+
+            {% csrf_token %}
+
+            <!-- Name -->
+            <div class="form-group">
+                <label for="name">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter full name"
+                    required
+                >
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter email address"
+                    required
+                >
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter password"
+                    required
+                >
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label for="confirm_password">
+                    Confirm Password
+                </label>
+
+                <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    placeholder="Confirm password"
+                    required
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="register-btn"
+                id="registerButton"
+            >
+                Create Admin Account
+            </button>
+
+        </form>
+
+        <div class="login-link">
+            Already have an account?
+            <a href="{% url 'admin_login' %}">
+                Login
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const form = document.getElementById(
+        'adminRegisterForm'
+    );
+
+    const messageBox = document.getElementById(
+        'message'
+    );
+
+    const registerButton = document.getElementById(
+        'registerButton'
+    );
+
+
+    form.addEventListener(
+        'submit',
+        async function(event) {
+
+            // Stop normal form submission
+            event.preventDefault();
+
+
+            // Get form values
+            const name = document.getElementById(
+                'name'
+            ).value.trim();
+
+            const email = document.getElementById(
+                'email'
+            ).value.trim();
+
+            const password = document.getElementById(
+                'password'
+            ).value;
+
+            const confirmPassword =
+                document.getElementById(
+                    'confirm_password'
+                ).value;
+
+
+            // Clear previous message
+            messageBox.className = 'message';
+            messageBox.textContent = '';
+
+
+            // Frontend password check
+            if (password !== confirmPassword) {
+
+                messageBox.className =
+                    'message error';
+
+                messageBox.textContent =
+                    'Passwords do not match.';
+
+                return;
+            }
+
+
+            // Disable button
+            registerButton.disabled = true;
+
+            registerButton.textContent =
+                'Creating Account...';
+
+
+            try {
+
+                const response = await fetch(
+                    "{% url 'admin_register_api' %}",
+                    {
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type':
+                                'application/json',
+
+                            'X-CSRFToken':
+                                document.querySelector(
+                                    '[name=csrfmiddlewaretoken]'
+                                ).value
+                        },
+
+                        body: JSON.stringify({
+
+                            name: name,
+
+                            email: email,
+
+                            password: password,
+
+                            confirm_password:
+                                confirmPassword
+                        })
+                    }
+                );
+
+
+                // Convert API response to JSON
+                const data =
+                    await response.json();
+
+
+                if (response.ok) {
+
+                    // Success
+                    messageBox.className =
+                        'message success';
+
+                    messageBox.textContent =
+                        data.message;
+
+
+                    // Clear form
+                    form.reset();
+
+
+                    // Redirect after registration
+                    setTimeout(
+                        function() {
+
+                            window.location.href =
+                                "{% url 'admin_login' %}";
+
+                        },
+                        1500
+                    );
+
+                } else {
+
+                    // API validation error
+                    messageBox.className =
+                        'message error';
+
+                    messageBox.textContent =
+                        data.message ||
+                        'Registration failed.';
+
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                messageBox.className =
+                    'message error';
+
+                messageBox.textContent =
+                    'Something went wrong. Please try again.';
+
+            } finally {
+
+                registerButton.disabled = false;
+
+                registerButton.textContent =
+                    'Create Admin Account';
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
