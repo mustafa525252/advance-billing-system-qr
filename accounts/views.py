@@ -17,7 +17,7 @@ from decimal import Decimal, InvalidOperation
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from .qr_utils import generate_invoice_qr
-from django.http import HttpResponse
+from django.http import HttpResponse, request
 from xhtml2pdf import pisa
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -545,73 +545,77 @@ def distributor_register(request):
     
     
 def forgot_password(request):
-
     if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
 
-        email = request.POST.get(
-            'email',
-            ''
-        ).strip().lower()
-
-        if not email:
-            messages.error(
-                request,
-                'Please enter your email address.'
-            )
-
-            return render(
-                request,
-                'accounts/forgot_password.html'
-            )
-
-        try:
-            user = User.objects.get(
-                email__iexact=email
-            )
-        except User.DoesNotExist:
-
-            messages.error(
-                request,
-                'No account found with this email address.'
-            )
-
-            return render(
-                request,
-                'accounts/forgot_password.html'
-            )
-
-        # Generate OTP
-        otp = generate_reset_otp(email)
-
-        # Store email in session
-        request.session['reset_email'] = email
-
-        # Reset verification status
-        request.session['otp_verified'] = False
-
-        # Send OTP
-        send_mail(
-            subject='Password Reset OTP',
-            message=(
-                f'Your password reset OTP is: {otp}\n\n'
-                'This OTP will expire in 5 minutes.'
-            ),
-            from_email=None,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-
-        messages.success(
+    if not email:
+        messages.error(
             request,
-            'OTP has been sent to your email.'
+            'Please enter your email address.'
+        )
+        return render(
+            request,
+            'accounts/forgot_password.html'
         )
 
-        return redirect('verify_otp')
+    # Find users matching this email
+    users = User.objects.filter(email__iexact=email)
+
+    if not users.exists():
+        messages.error(
+            request,
+            'No account found with this email address.'
+        )
+        return render(
+            request,
+            'accounts/forgot_password.html'
+        )
+
+    # Prevent ambiguity when multiple accounts share an email
+    if users.count() > 1:
+        messages.error(
+            request,
+            'Multiple accounts use this email. Please contact the administrator.'
+        )
+        return render(
+            request,
+            'accounts/forgot_password.html'
+        )
+
+    user = users.first()
+
+    # Generate OTP
+    otp = generate_reset_otp(email)
+
+    # Store email in session
+    request.session['reset_email'] = email
+
+    # Reset verification status
+    request.session['otp_verified'] = False
+
+    # Send OTP
+    send_mail(
+        subject='Password Reset OTP',
+        message=(
+            f'Your password reset OTP is: {otp}\n\n'
+            'This OTP will expire in 5 minutes.'
+        ),
+        from_email=None,
+        recipient_list=[email],
+        fail_silently=False,
+    )
+
+    messages.success(
+        request,
+        'OTP has been sent to your email.'
+    )
+    return redirect('verify_otp')
 
     return render(
         request,
         'accounts/forgot_password.html'
     )
+
     
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -2510,3 +2514,170 @@ def admin_register(request):
         request,
         'accounts/admin_register.html'
     )
+    
+#admin forgot password view
+def admin_forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+
+        if not email:
+            messages.error(request, 'Please enter your email.')
+            return redirect('admin_forgot_password')
+
+        user = User.objects.filter(
+            email__iexact=email,
+            is_staff=True
+        ).first()
+
+        # Use a generic message to avoid revealing
+        # whether an admin email exists.
+        if user:
+            otp = str(random.randint(100000, 999999))
+
+            OTPVerification.objects.filter(
+                email__iexact=email
+            ).delete()
+
+            OTPVerification.objects.create(
+                email=email,
+                otp_code=otp,
+                expires_at=timezone.now() + timedelta(minutes=5),
+                is_verified=False
+            )
+
+            request.session['admin_reset_email'] = email
+            request.session['admin_otp_verified'] = False
+
+            try:
+                send_mail(
+                    subject='Admin Password Reset OTP',
+                    message=(
+                        f'Your OTP is {otp}. '
+                        'It expires in 5 minutes.'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            except Exception:
+                OTPVerification.objects.filter(
+                    email__iexact=email
+                ).delete()
+
+                request.session.pop('admin_reset_email', None)
+                messages.error(
+                    request,
+                    'Unable to send the OTP. Please try again.'
+                )
+                return redirect('admin_forgot_password')
+
+        messages.success(
+            request,
+            'If the email belongs to an admin account, '
+            'a password reset OTP has been sent.'
+        )
+        return redirect('admin_verify_otp')
+
+    return render(request, 'accounts/admin_forgot_password.html')
+
+#admin verify otp view
+def admin_verify_otp(request):
+    email = request.session.get('admin_reset_email')
+
+    if not email:
+        messages.error(request, 'Please request a new OTP.')
+        return redirect('admin_forgot_password')
+
+    if request.method == 'POST':
+        otp = request.POST.get('otp', '').strip()
+
+        verification = OTPVerification.objects.filter(
+            email__iexact=email,
+            is_verified=False
+        ).order_by('-id').first()
+
+        if not verification or verification.otp_code != otp:
+            messages.error(request, 'Invalid OTP.')
+            return redirect('admin_verify_otp')
+
+        if verification.is_expired():
+            messages.error(
+                request,
+                'OTP expired. Please request a new one.'
+            )
+            return redirect('admin_forgot_password')
+
+        # Confirm this is still an Admin account.
+        if not User.objects.filter(
+            email__iexact=email,
+            is_staff=True
+        ).exists():
+            messages.error(request, 'Admin account not found.')
+            return redirect('admin_forgot_password')
+
+        verification.is_verified = True
+        verification.save(update_fields=['is_verified'])
+
+        request.session['admin_otp_verified'] = True
+
+        return redirect('admin_reset_password')
+
+    return render(request, 'accounts/admin_verify_otp.html')
+
+#admin reset password view
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
+
+def admin_reset_password(request):
+    email = request.session.get('admin_reset_email')
+    verified = request.session.get('admin_otp_verified', False)
+
+    if not email or not verified:
+        messages.error(request, 'Please verify your OTP first.')
+        return redirect('admin_forgot_password')
+
+    user = User.objects.filter(
+        email__iexact=email,
+        is_staff=True
+    ).first()
+
+    if not user:
+        request.session.pop('admin_reset_email', None)
+        request.session.pop('admin_otp_verified', None)
+        return redirect('admin_forgot_password')
+
+    if request.method == 'POST':
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        if password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return redirect('admin_reset_password')
+
+        try:
+            validate_password(password, user)
+        except ValidationError as error:
+            for message in error.messages:
+                messages.error(request, message)
+            return redirect('admin_reset_password')
+
+        user.set_password(password)
+        user.save()
+
+        # Consume the verified OTP.
+        OTPVerification.objects.filter(
+            email__iexact=email,
+            is_verified=True
+        ).delete()
+
+        request.session.pop('admin_reset_email', None)
+        request.session.pop('admin_otp_verified', None)
+
+        messages.success(
+            request,
+            'Password reset successfully. Please log in.'
+        )
+        return redirect('admin_login')
+
+    return render(request, 'accounts/admin_reset_password.html')
