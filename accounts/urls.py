@@ -56,5 +56,10 @@ path(
     views.admin_reset_password,
     name='admin_reset_password'
 ),
+    path(
+    'api/customer/register/',
+    views.customer_register_api,
+    name='customer_register_api'
+),
     path('logout/',views.logout_view,name='logout'),
 ]

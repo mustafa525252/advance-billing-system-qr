@@ -24,6 +24,7 @@ from reportlab.lib.pagesizes import A4
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.core.validators import validate_email
 
 # Create your views here.
 
@@ -1414,7 +1415,7 @@ def delete_customer(request, customer_id):
 
     return redirect('customer_list')
 
-
+@login_required(login_url='distributor_login')
 def add_product(request):
 
     if request.method == 'POST':
@@ -2681,3 +2682,56 @@ def admin_reset_password(request):
         return redirect('admin_login')
 
     return render(request, 'accounts/admin_reset_password.html')
+
+
+@login_required(login_url='distributor_login')
+@require_POST
+def customer_register_api(request):
+    name = request.POST.get('name', '').strip()
+    email = request.POST.get('email', '').strip().lower()
+    phone = request.POST.get('phone', '').strip()
+
+    street_address = request.POST.get('street_address', '').strip()
+    city = request.POST.get('city', '').strip()
+    state = request.POST.get('state', '').strip()
+    pincode = request.POST.get('pincode', '').strip()
+    country = request.POST.get('country', 'India').strip() or 'India'
+
+    if not all([name, email, phone, street_address, city, state, pincode]):
+        return JsonResponse({
+            'success': False,
+            'message': 'Please fill in all required fields.'
+        }, status=400)
+
+    if len(name) > 100 or len(email) > 254 or len(phone) > 15:
+        return JsonResponse({
+            'success': False,
+            'message': 'Name, email, or phone exceeds the allowed length.'
+        }, status=400)
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Please enter a valid email address.'
+        }, status=400)
+
+    address = (
+        f"{street_address}, {city}, {state}, "
+        f"{pincode}, {country}"
+    )
+
+    customer = Customer.objects.create(
+        distributor=request.user,
+        name=name,
+        email=email,
+        phone=phone,
+        address=address
+    )
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Customer registered successfully.',
+        'customer_id': customer.id
+    }, status=201)
