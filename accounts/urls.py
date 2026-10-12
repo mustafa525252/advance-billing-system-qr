@@ -29,37 +29,16 @@ urlpatterns = [
     path('invoices/<int:invoice_id>/print/',views.print_invoice,name='print_invoice'),
     path('invoice/<int:invoice_id>/download/',views.download_invoice_pdf,name='download_invoice_pdf'),
     #admin register api
-    path(
-    'accounts/admin/register/',
-    views.admin_register,
-    name='admin_register'
-),
-
-path(
-    'api/admin/register/',
-    views.admin_register_api,
-    name='admin_register_api'
-),
-
-    path(
-    'accounts/admin/forgot-password/',
-    views.admin_forgot_password,
-    name='admin_forgot_password'
-),
-path(
-    'accounts/admin/verify-otp/',
-    views.admin_verify_otp,
-    name='admin_verify_otp'
-),
-path(
-    'accounts/admin/reset-password/',
-    views.admin_reset_password,
-    name='admin_reset_password'
-),
-    path(
-    'api/customer/register/',
-    views.customer_register_api,
-    name='customer_register_api'
-),
+    path('accounts/admin/register/',views.admin_register,name='admin_register'),
+    path('api/admin/register/',views.admin_register_api,name='admin_register_api'),
+    path('accounts/admin/forgot-password/',views.admin_forgot_password,name='admin_forgot_password'),
+    path('accounts/admin/verify-otp/',views.admin_verify_otp,name='admin_verify_otp'),
+    path('accounts/admin/reset-password/',views.admin_reset_password,name='admin_reset_password'),
+    path('api/customer/register/',views.customer_register_api,name='customer_register_api'),
+    # admin report
+    path('admin-reports/', views.admin_reports, name='admin_reports'),
+    path('admin-distributors/',views.view_distributors,name='view_distributors'),
+    path('admin-customers/',views.view_customers,name='view_customers'),
+    path('admin-products/',views.view_products,name='view_products'),
     path('logout/',views.logout_view,name='logout'),
 ]

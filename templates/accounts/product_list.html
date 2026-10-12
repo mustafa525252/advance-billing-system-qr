@@ -1,193 +1,173 @@
+
 {% extends 'accounts/base.html' %}
 
-
-{% block title %}
-Products | Advance Billing System
-{% endblock %}
-
+{% block title %}Products | Advance Billing System{% endblock %}
 
 {% block extra_css %}
-
 <style>
     .page {
         max-width: 1200px;
-        margin: 40px auto;
-        padding: 0 20px;
+        margin: 35px auto;
+        padding: 0 20px 30px;
     }
-
-
-    /* HEADER */
 
     .page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 25px;
         gap: 20px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
     }
 
     .page-header h1 {
+        margin: 0 0 7px;
+        color: #111827;
         font-size: 28px;
-        margin-bottom: 6px;
+        font-weight: 700;
     }
 
     .page-header p {
+        margin: 0;
         color: #6b7280;
         font-size: 14px;
     }
 
-
-    /* ADD BUTTON */
-
     .add-btn {
-        background: #059669;
-        color: white;
-        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
         padding: 12px 18px;
-        border-radius: 8px;
+        background: #059669;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 9px;
         font-size: 14px;
         font-weight: 600;
-        white-space: nowrap;
+        transition: background .2s, transform .2s;
     }
 
     .add-btn:hover {
         background: #047857;
+        color: #fff;
+        transform: translateY(-1px);
     }
 
-
-    .delete-btn {
-        display: inline-block;
-        padding: 8px 14px;
-        background: #dc2626;
-        color: white;
-        text-decoration: none;
-        border-radius: 7px;
-        font-size: 13px;
-        font-weight: 600;
-        margin-left: 6px;
+    .message {
+        margin-bottom: 18px;
+        padding: 13px 16px;
+        border-radius: 9px;
+        font-size: 14px;
     }
 
-    .delete-btn:hover {
-        background: #b91c1c;
+    .message.success {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
     }
 
+    .message.error {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
 
-    /* SEARCH */
+    .message.warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .search-card,
+    .table-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, .04);
+    }
 
     .search-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
+        padding: 18px;
         margin-bottom: 20px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
     }
 
     .search-form {
         display: flex;
+        align-items: center;
         gap: 10px;
     }
 
-    .search-form input {
+    .search-input {
         flex: 1;
+        min-width: 0;
         padding: 12px 14px;
         border: 1px solid #d1d5db;
         border-radius: 8px;
-        outline: none;
+        color: #111827;
+        background: #fff;
         font-size: 14px;
+        outline: none;
     }
 
-    .search-form input:focus {
+    .search-input:focus {
         border-color: #059669;
-        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, .12);
+    }
+
+    .search-btn,
+    .clear-btn {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
     }
 
     .search-btn {
-        padding: 12px 22px;
-        border: none;
-        border-radius: 8px;
+        border: 1px solid #1f2937;
         background: #1f2937;
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
+        color: #fff;
     }
 
-    /* MESSAGES */
-
-.message {
-    max-width: 1200px;
-    margin: 20px auto 0;
-    padding: 14px 18px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    animation: slideDown 0.3s ease;
-}
-
-.message.success {
-    background: #ecfdf5;
-    color: #047857;
-    border: 1px solid #a7f3d0;
-}
-
-.message.success::before {
-    content: "✓";
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #059669;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-.message.error {
-    background: #fef2f2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
-}
-
-.message.error::before {
-    content: "!";
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #dc2626;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-@keyframes slideDown {
-
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
+    .search-btn:hover {
+        background: #111827;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .clear-btn {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
     }
 
-}
+    .clear-btn:hover {
+        background: #f9fafb;
+    }
 
+    .table-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
 
-    /* TABLE */
+    .table-heading h2 {
+        margin: 0;
+        font-size: 17px;
+        color: #111827;
+    }
 
-    .table-card {
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    .table-heading p {
+        margin: 4px 0 0;
+        color: #6b7280;
+        font-size: 13px;
     }
 
     .table-wrapper {
@@ -196,200 +176,286 @@ Products | Advance Billing System
 
     table {
         width: 100%;
-        border-collapse: collapse;
         min-width: 850px;
+        border-collapse: collapse;
     }
 
-    th {
+    thead th {
         background: #f9fafb;
-        color: #374151;
-        font-size: 12px;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: .6px;
     }
 
     th,
     td {
         padding: 16px;
         text-align: left;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #eef0f3;
     }
 
-    td {
-        font-size: 14px;
+    tbody td {
         color: #374151;
+        font-size: 14px;
     }
 
-    tr:last-child td {
+    tbody tr:hover {
+        background: #fafdfb;
+    }
+
+    tbody tr:last-child td {
         border-bottom: none;
     }
 
+    .row-number {
+        color: #9ca3af;
+        font-size: 12px;
+    }
+
     .product-name {
-        font-weight: 600;
         color: #111827;
+        font-weight: 600;
+    }
+
+    .category {
+        display: inline-block;
+        padding: 5px 9px;
+        background: #f3f4f6;
+        color: #4b5563;
+        border-radius: 6px;
+        font-size: 12px;
     }
 
     .price {
-        font-weight: 600;
         color: #047857;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .stock {
         display: inline-block;
         padding: 5px 10px;
         border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .stock-available {
         background: #ecfdf5;
         color: #047857;
-        font-size: 13px;
+    }
+
+    .stock-low {
+        background: #fffbeb;
+        color: #b45309;
+    }
+
+    .stock-out {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .gst {
+        white-space: nowrap;
+    }
+
+    .actions {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .edit-btn,
+    .delete-btn {
+        display: inline-block;
+        padding: 8px 11px;
+        border-radius: 7px;
+        font-size: 12px;
         font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .edit-btn {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+
+    .edit-btn:hover {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .delete-btn {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    .delete-btn:hover {
+        background: #fee2e2;
+        color: #991b1b;
     }
 
     .no-products {
+        padding: 45px 20px;
         text-align: center;
-        padding: 40px;
         color: #6b7280;
     }
 
+    .no-products strong {
+        display: block;
+        margin-bottom: 7px;
+        color: #374151;
+        font-size: 16px;
+    }
 
-    /* PAGINATION */
+    .no-products p {
+        margin: 0;
+        font-size: 13px;
+    }
 
     .pagination {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 8px;
-        margin-top: 25px;
+        gap: 7px;
+        margin-top: 22px;
         flex-wrap: wrap;
-    }
-
-    .edit-btn {
-        display: inline-block;
-        padding: 8px 14px;
-        background: #2563eb;
-        color: white;
-        text-decoration: none;
-        border-radius: 7px;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .edit-btn:hover {
-        background: #1d4ed8;
     }
 
     .pagination a,
     .pagination span {
+        display: inline-flex;
         min-width: 38px;
         height: 38px;
         padding: 0 10px;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    .pagination a {
-        background: white;
-        color: #374151;
+        align-items: center;
         border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #fff;
+        color: #374151;
+        text-decoration: none;
+        font-size: 13px;
     }
 
     .pagination a:hover {
         border-color: #059669;
-        color: #059669;
+        color: #047857;
     }
 
     .pagination .current {
         background: #059669;
-        color: white;
-        font-weight: 600;
+        border-color: #059669;
+        color: #fff;
+        font-weight: 700;
     }
 
-
     @media (max-width: 650px) {
+        .page {
+            margin-top: 22px;
+            padding: 0 12px 25px;
+        }
 
         .page-header {
-            flex-direction: column;
-            align-items: flex-start;
+            align-items: stretch;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+        }
+
+        .add-btn {
+            align-self: flex-start;
         }
 
         .search-form {
-            flex-direction: column;
+            flex-wrap: wrap;
         }
 
+        .search-input {
+            flex-basis: 100%;
+        }
+
+        .search-btn,
+        .clear-btn {
+            flex: 1;
+        }
+
+        .table-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
     }
 </style>
-
 {% endblock %}
 
-
 {% block content %}
-
-
 <div class="page">
+
     {% if messages %}
-    {% for message in messages %}
-        <div class="message {{ message.tags }}">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
-
-    <!-- PAGE HEADER -->
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
     <div class="page-header">
-
         <div>
-
-            <h1>Products</h1>
-
-            <p>
-                Manage and view your product inventory.
-            </p>
-
+            <h1>Product Management</h1>
+            <p>Manage your products, prices, GST rates and inventory.</p>
         </div>
 
-
         <a href="{% url 'add_product' %}" class="add-btn">
-            + Add Product
+            <span aria-hidden="true">+</span> Add Product
         </a>
-
     </div>
-
-
-    <!-- SEARCH -->
 
     <div class="search-card">
-
         <form method="GET" class="search-form">
+            <input
+                type="search"
+                name="search"
+                class="search-input"
+                value="{{ search_query }}"
+                placeholder="Search by product name or category..."
+                aria-label="Search products"
+            >
 
-            <input type="text" name="search" value="{{ search_query }}"
-                placeholder="Search by product name or category...">
+            <button type="submit" class="search-btn">Search</button>
 
-            <button type="submit" class="search-btn">
-                Search
-            </button>
-
+            {% if search_query %}
+                <a href="{% url 'product_list' %}" class="clear-btn">
+                    Clear
+                </a>
+            {% endif %}
         </form>
-
     </div>
 
-
-    <!-- PRODUCT TABLE -->
-
     <div class="table-card">
+        <div class="table-heading">
+            <div>
+                <h2>Product Inventory</h2>
+                <p>
+                    {% if search_query %}
+                        Search results for "{{ search_query }}"
+                    {% else %}
+                        Your registered products
+                    {% endif %}
+                </p>
+            </div>
+        </div>
 
         <div class="table-wrapper">
-
             <table>
-
                 <thead>
-
                     <tr>
-
                         <th>#</th>
                         <th>Product Name</th>
                         <th>Category</th>
@@ -397,131 +463,108 @@ Products | Advance Billing System
                         <th>Stock</th>
                         <th>GST Rate</th>
                         <th>Actions</th>
-
                     </tr>
-
                 </thead>
 
-
                 <tbody>
-
                     {% for product in page_obj %}
+                        <tr>
+                            <td class="row-number">
+                                {{ forloop.counter0|add:page_obj.start_index }}
+                            </td>
 
-                    <tr>
+                            <td class="product-name">
+                                {{ product.name }}
+                            </td>
 
-                        <td>
-                            {{ forloop.counter0|add:page_obj.start_index }}
-                        </td>
+                            <td>
+                                <span class="category">
+                                    {{ product.category }}
+                                </span>
+                            </td>
 
-                        <td class="product-name">
-                            {{ product.name }}
-                        </td>
+                            <td class="price">
+                                ₹{{ product.price|floatformat:2 }}
+                            </td>
 
-                        <td>
-                            {{ product.category }}
-                        </td>
+                            <td>
+                                {% if product.stock == 0 %}
+                                    <span class="stock stock-out">Out of stock</span>
+                                {% elif product.stock <= 5 %}
+                                    <span class="stock stock-low">
+                                        Low: {{ product.stock }}
+                                    </span>
+                                {% else %}
+                                    <span class="stock stock-available">
+                                        {{ product.stock }} available
+                                    </span>
+                                {% endif %}
+                            </td>
 
-                        <td class="price">
-                            ₹{{ product.price }}
-                        </td>
+                            <td class="gst">{{ product.gst_rate }}%</td>
 
-                        <td>
-                            <span class="stock">
-                                {{ product.stock }}
-                            </span>
-                        </td>
+                            <td>
+                                <div class="actions">
+                                    <a
+                                        href="{% url 'edit_product' product.id %}"
+                                        class="edit-btn"
+                                    >Edit</a>
 
-                        <td>
-                            {{ product.gst_rate }}%
-                        </td>
-                        <td>
-
-                            <a href="{% url 'edit_product' product.id %}" class="edit-btn">
-                                Edit
-                            </a>
-                            <a href="{% url 'delete_product' product.id %}" class="delete-btn">
-                                Delete
-                            </a>
-
-                        </td>
-                    </tr>
-
+                                    <a
+                                        href="{% url 'delete_product' product.id %}"
+                                        class="delete-btn"
+                                    >Delete</a>
+                                </div>
+                            </td>
+                        </tr>
                     {% empty %}
-
-                    <tr>
-
-                        <td colspan="6" class="no-products">
-
-                            No products found.
-
-                        </td>
-
-                    </tr>
-
+                        <tr>
+                            <td colspan="7" class="no-products">
+                                <strong>No products found</strong>
+                                <p>
+                                    {% if search_query %}
+                                        Try another search term or clear your search.
+                                    {% else %}
+                                        Add your first product to start managing inventory.
+                                    {% endif %}
+                                </p>
+                            </td>
+                        </tr>
                     {% endfor %}
-
                 </tbody>
-
             </table>
-
         </div>
-
     </div>
-
-
-    <!-- PAGINATION -->
 
     {% if page_obj.has_other_pages %}
+        <nav class="pagination" aria-label="Product pagination">
 
-    <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query|urlencode }}">
+                    Previous
+                </a>
+            {% endif %}
 
+            {% for page_number in page_obj.paginator.page_range %}
+                {% if page_number == page_obj.number %}
+                    <span class="current" aria-current="page">
+                        {{ page_number }}
+                    </span>
+                {% else %}
+                    <a href="?page={{ page_number }}&search={{ search_query|urlencode }}">
+                        {{ page_number }}
+                    </a>
+                {% endif %}
+            {% endfor %}
 
-        {% if page_obj.has_previous %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&search={{ search_query|urlencode }}">
+                    Next
+                </a>
+            {% endif %}
 
-        <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}">
-            Previous
-        </a>
-
-        {% endif %}
-
-
-        {% for page_number in page_obj.paginator.page_range %}
-
-        {% if page_number == page_obj.number %}
-
-        <span class="current">
-
-            {{ page_number }}
-
-        </span>
-
-        {% else %}
-
-        <a href="?page={{ page_number }}&search={{ search_query }}">
-
-            {{ page_number }}
-
-        </a>
-
-        {% endif %}
-
-        {% endfor %}
-
-
-        {% if page_obj.has_next %}
-
-        <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}">
-            Next
-        </a>
-
-        {% endif %}
-
-
-    </div>
-
+        </nav>
     {% endif %}
 
-
 </div>
-
 {% endblock %}

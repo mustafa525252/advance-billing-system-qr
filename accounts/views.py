@@ -25,7 +25,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.validators import validate_email
-
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate
 # Create your views here.
 
 
@@ -1417,181 +1418,39 @@ def delete_customer(request, customer_id):
 
 @login_required(login_url='distributor_login')
 def add_product(request):
-
     if request.method == 'POST':
+        data = validate_product_data(request)
 
-        name = request.POST.get('name', '').strip()
-        category = request.POST.get('category', '').strip()
-        price = request.POST.get('price', '').strip()
-        stock = request.POST.get('stock', '').strip()
-        gst_rate = request.POST.get('gst_rate', '').strip()
-
-
-        # PRODUCT NAME VALIDATION
-
-        if not name:
-            messages.error(
-                request,
-                'Product name is required.'
-            )
-
-            return render(
-                request,
-                'accounts/add_product.html'
-            )
-
-
-        # CATEGORY VALIDATION
-
-        if not category:
-            messages.error(
-                request,
-                'Category is required.'
-            )
-
-            return render(
-                request,
-                'accounts/add_product.html'
-            )
-
-
-        # PRICE VALIDATION
-
-        try:
-
-            price = Decimal(price)
-
-            if price <= 0:
-
-                messages.error(
-                    request,
-                    'Price must be greater than 0.'
-                )
-
-                return render(
-                    request,
-                    'accounts/add_product.html'
-                )
-
-        except InvalidOperation:
-
-            messages.error(
-                request,
-                'Please enter a valid price.'
-            )
-
-            return render(
-                request,
-                'accounts/add_product.html'
-            )
-
-
-        # STOCK VALIDATION
-
-        try:
-
-            stock = int(stock)
-
-            if stock < 0:
-
-                messages.error(
-                    request,
-                    'Stock cannot be negative.'
-                )
-
-                return render(
-                    request,
-                    'accounts/add_product.html'
-                )
-
-        except ValueError:
-
-            messages.error(
-                request,
-                'Please enter a valid stock quantity.'
-            )
-
-            return render(
-                request,
-                'accounts/add_product.html'
-            )
-
-
-        # GST VALIDATION
-
-        try:
-
-            gst_rate = Decimal(gst_rate)
-
-            if gst_rate < 0:
-
-                messages.error(
-                    request,
-                    'GST rate cannot be negative.'
-                )
-
-                return render(
-                    request,
-                    'accounts/add_product.html'
-                )
-
-        except InvalidOperation:
-
-            messages.error(
-                request,
-                'Please enter a valid GST rate.'
-            )
-
-            return render(
-                request,
-                'accounts/add_product.html'
-            )
-
-
-        # CREATE PRODUCT
+        if data is None:
+            return render(request, 'accounts/add_product.html')
 
         Product.objects.create(
             distributor=request.user,
-            name=name,
-            category=category,
-            price=price,
-            stock=stock,
-            gst_rate=gst_rate
+            **data
         )
 
-
-        messages.success(
-            request,
-            'Product added successfully.'
-        )
-
+        messages.success(request, 'Product added successfully.')
         return redirect('product_list')
 
-
-    return render(
-        request,
-        'accounts/add_product.html'
-    )
+    return render(request, 'accounts/add_product.html')
     
     
+@login_required(login_url='distributor_login')
 def product_list(request):
+    search_query = request.GET.get('search', '').strip()
 
-    search_query = request.GET.get('search', '')
-
-    products = Product.objects.filter(distributor=request.user).order_by('-created_at')
+    products = Product.objects.filter(
+        distributor=request.user
+    ).order_by('-created_at')
 
     if search_query:
-
         products = products.filter(
-            Q(name__icontains=search_query) |
-            Q(category__icontains=search_query)
+            Q(name__icontains=search_query)
+            | Q(category__icontains=search_query)
         )
 
     paginator = Paginator(products, 5)
-
-    page_number = request.GET.get('page')
-
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     context = {
         'page_obj': page_obj,
@@ -1605,9 +1464,8 @@ def product_list(request):
     )
     
     
-@login_required
+@login_required(login_url='distributor_login')
 def edit_product(request, product_id):
-
     product = get_object_or_404(
         Product,
         id=product_id,
@@ -1615,154 +1473,34 @@ def edit_product(request, product_id):
     )
 
     if request.method == 'POST':
+        data = validate_product_data(request)
 
-        name = request.POST.get(
-            'name',
-            ''
-        ).strip()
-
-        category = request.POST.get(
-            'category',
-            ''
-        ).strip()
-
-        price = request.POST.get(
-            'price',
-            ''
-        ).strip()
-
-        stock = request.POST.get(
-            'stock',
-            ''
-        ).strip()
-
-        gst_rate = request.POST.get(
-            'gst_rate',
-            ''
-        ).strip()
-
-
-        # VALIDATION
-
-        if not name:
-
-            messages.error(
+        if data is None:
+            return render(
                 request,
-                'Product name is required.'
+                'accounts/edit_product.html',
+                {'product': product}
             )
 
-            return redirect(
-                'edit_product',
-                product_id=product.id
-            )
-
-
-        if not category:
-
-            messages.error(
-                request,
-                'Category is required.'
-            )
-
-            return redirect(
-                'edit_product',
-                product_id=product.id
-            )
-
-
-        try:
-
-            price = float(price)
-
-            stock = int(stock)
-
-            gst_rate = float(gst_rate)
-
-        except ValueError:
-
-            messages.error(
-                request,
-                'Please enter valid product values.'
-            )
-
-            return redirect(
-                'edit_product',
-                product_id=product.id
-            )
-
-
-        if price <= 0:
-
-            messages.error(
-                request,
-                'Price must be greater than 0.'
-            )
-
-            return redirect(
-                'edit_product',
-                product_id=product.id
-            )
-
-
-        if stock < 0:
-
-            messages.error(
-                request,
-                'Stock cannot be negative.'
-            )
-
-            return redirect(
-                'edit_product',
-                product_id=product.id
-            )
-
-
-        if gst_rate < 0:
-
-            messages.error(
-                request,
-                'GST rate cannot be negative.'
-            )
-
-            return redirect(
-                'edit_product',
-                product_id=product.id
-            )
-
-
-        # UPDATE PRODUCT
-
-        product.name = name
-        product.category = category
-        product.price = price
-        product.stock = stock
-        product.gst_rate = gst_rate
-
+        product.name = data['name']
+        product.category = data['category']
+        product.price = data['price']
+        product.stock = data['stock']
+        product.gst_rate = data['gst_rate']
         product.save()
 
-
-        messages.success(
-            request,
-            'Product updated successfully.'
-        )
-
+        messages.success(request, 'Product updated successfully.')
         return redirect('product_list')
-
-
-    context = {
-        'product': product
-    }
 
     return render(
         request,
         'accounts/edit_product.html',
-        context
+        {'product': product}
     )
     
     
-@login_required
+@login_required(login_url='distributor_login')
 def delete_product(request, product_id):
-
     product = get_object_or_404(
         Product,
         id=product_id,
@@ -1770,24 +1508,25 @@ def delete_product(request, product_id):
     )
 
     if request.method == 'POST':
+        try:
+            product.delete()
 
-        product.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                'This product cannot be deleted because it is '
+                'linked to an existing invoice. You can keep it '
+                'and set its stock to 0 instead.'
+            )
+            return redirect('product_list')
 
-        messages.success(
-            request,
-            'Product deleted successfully.'
-        )
-
+        messages.success(request, 'Product deleted successfully.')
         return redirect('product_list')
-
-    context = {
-        'product': product
-    }
 
     return render(
         request,
         'accounts/delete_product.html',
-        context
+        {'product': product}
     )
     
 @login_required
@@ -2311,68 +2050,73 @@ def download_invoice_pdf(request, invoice_id):
 
     return response
 
-
 @csrf_exempt
 def admin_register_api(request):
-
     if request.method != 'POST':
-        return JsonResponse(
-            {
-                'success': False,
-                'message': 'Only POST requests are allowed.'
-            },
-            status=405
-        )
+        return JsonResponse({
+            'success': False,
+            'message': 'Only POST requests are allowed.'
+        }, status=405)
 
     try:
         data = json.loads(request.body)
 
         name = data.get('name', '').strip()
+        username = data.get('username', '').strip()
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
         confirm_password = data.get('confirm_password', '')
 
-        # -------------------------
         # Name validation
-        # -------------------------
         if not name:
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Full name is required.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Full name is required.'
+            }, status=400)
 
         if len(name) < 3:
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Name must contain at least 3 characters.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Name must contain at least 3 characters.'
+            }, status=400)
 
         if not re.match(r'^[A-Za-z ]+$', name):
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Name can contain only letters and spaces.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Name can contain only letters and spaces.'
+            }, status=400)
 
-        # -------------------------
+        # Username validation
+        if not username:
+            return JsonResponse({
+                'success': False,
+                'message': 'Username is required.'
+            }, status=400)
+
+        if len(username) < 4:
+            return JsonResponse({
+                'success': False,
+                'message': 'Username must contain at least 4 characters.'
+            }, status=400)
+
+        if not re.match(r'^[A-Za-z0-9_]+$', username):
+            return JsonResponse({
+                'success': False,
+                'message': 'Username can contain only letters, numbers, and underscores.'
+            }, status=400)
+
+        if User.objects.filter(username__iexact=username).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'This username is already taken.'
+            }, status=400)
+
         # Email validation
-        # -------------------------
         if not email:
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Email address is required.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Email address is required.'
+            }, status=400)
 
         email_pattern = (
             r'^[A-Za-z0-9._%+-]+@'
@@ -2380,96 +2124,49 @@ def admin_register_api(request):
         )
 
         if not re.match(email_pattern, email):
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Please enter a valid email address.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Please enter a valid email address.'
+            }, status=400)
 
-        # -------------------------
+        if User.objects.filter(email__iexact=email).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'This email is already registered.'
+            }, status=400)
+
         # Password validation
-        # -------------------------
         if not password:
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Password is required.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Password is required.'
+            }, status=400)
 
         if len(password) < 8:
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Password must contain at least 8 characters.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Password must contain at least 8 characters.'
+            }, status=400)
 
         if not re.search(r'[A-Za-z]', password):
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Password must contain at least one letter.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Password must contain at least one letter.'
+            }, status=400)
 
         if not re.search(r'\d', password):
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Password must contain at least one number.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Password must contain at least one number.'
+            }, status=400)
 
-        # -------------------------
-        # Confirm password
-        # -------------------------
         if password != confirm_password:
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'Passwords do not match.'
-                },
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'message': 'Passwords do not match.'
+            }, status=400)
 
-        # -------------------------
-        # Duplicate email
-        # -------------------------
-        if User.objects.filter(
-            email__iexact=email
-        ).exists():
-            return JsonResponse(
-                {
-                    'success': False,
-                    'message': 'This email is already registered.'
-                },
-                status=400
-            )
-
-        # -------------------------
-        # Create username
-        # -------------------------
-        username = email.split('@')[0]
-
-        original_username = username
-        counter = 1
-
-        while User.objects.filter(
-            username=username
-        ).exists():
-            username = f'{original_username}{counter}'
-            counter += 1
-
-        # -------------------------
-        # Create Admin User
-        # -------------------------
+        # Create admin user
         user = User.objects.create_user(
             username=username,
             first_name=name,
@@ -2478,37 +2175,29 @@ def admin_register_api(request):
             is_staff=True
         )
 
-        return JsonResponse(
-            {
-                'success': True,
-                'message': 'Admin user registered successfully.',
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'name': user.first_name,
-                    'email': user.email
-                }
-            },
-            status=201
-        )
+        return JsonResponse({
+            'success': True,
+            'message': 'Admin user registered successfully.',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'name': user.first_name,
+                'email': user.email
+            }
+        }, status=201)
 
     except json.JSONDecodeError:
-        return JsonResponse(
-            {
-                'success': False,
-                'message': 'Invalid JSON data.'
-            },
-            status=400
-        )
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid JSON data.'
+        }, status=400)
 
-    except Exception as error:
-        return JsonResponse(
-            {
-                'success': False,
-                'message': 'Unable to register admin user.'
-            },
-            status=500
-        )
+    except Exception:
+        return JsonResponse({
+            'success': False,
+            'message': 'Unable to register admin user.'
+        }, status=500)
+
         
 def admin_register(request):
     return render(
@@ -2735,3 +2424,250 @@ def customer_register_api(request):
         'message': 'Customer registered successfully.',
         'customer_id': customer.id
     }, status=201)
+    
+    
+def validate_product_data(request):
+    name = request.POST.get('name', '').strip()
+    category = request.POST.get('category', '').strip()
+    raw_price = request.POST.get('price', '').strip()
+    raw_stock = request.POST.get('stock', '').strip()
+    raw_gst = request.POST.get('gst_rate', '').strip()
+
+    if not name:
+        messages.error(request, 'Product name is required.')
+        return None
+
+    if not category:
+        messages.error(request, 'Category is required.')
+        return None
+
+    try:
+        price = Decimal(raw_price)
+
+        if not price.is_finite() or price <= 0:
+            raise InvalidOperation
+
+    except (InvalidOperation, ValueError):
+        messages.error(
+            request,
+            'Enter a valid price greater than 0.'
+        )
+        return None
+
+    try:
+        stock = int(raw_stock)
+
+        if stock < 0:
+            messages.error(request, 'Stock cannot be negative.')
+            return None
+
+    except (ValueError, TypeError):
+        messages.error(
+            request,
+            'Enter a valid whole-number stock quantity.'
+        )
+        return None
+
+    try:
+        gst_rate = Decimal(raw_gst)
+
+        if (
+            not gst_rate.is_finite()
+            or gst_rate < 0
+            or gst_rate > 100
+        ):
+            raise InvalidOperation
+
+    except (InvalidOperation, ValueError):
+        messages.error(
+            request,
+            'GST rate must be a valid number between 0 and 100.'
+        )
+        return None
+
+    return {
+        'name': name,
+        'category': category,
+        'price': price,
+        'stock': stock,
+        'gst_rate': gst_rate,
+    }
+    
+@login_required(login_url='admin_login')
+def admin_reports(request):
+    if not request.user.is_staff:
+        messages.error(request, 'Admin access required.')
+        return redirect('distributor_login')
+
+    today = timezone.localdate()
+    default_start = today - timedelta(days=29)
+
+    start_date = request.GET.get('start_date', default_start.isoformat())
+    end_date = request.GET.get('end_date', today.isoformat())
+
+    # Validate date inputs
+    try:
+        start = timezone.datetime.strptime(
+            start_date, '%Y-%m-%d'
+        ).date()
+        end = timezone.datetime.strptime(
+            end_date, '%Y-%m-%d'
+        ).date()
+
+        if start > end:
+            raise ValueError
+
+    except (ValueError, TypeError):
+        messages.error(
+            request,
+            'Please select a valid date range.'
+        )
+        start = default_start
+        end = today
+        start_date = start.isoformat()
+        end_date = end.isoformat()
+
+    # Invoices within the selected date range
+    invoices = Invoice.objects.filter(
+        created_at__date__range=(start, end)
+    ).select_related('customer', 'distributor').order_by('-created_at')
+
+    sales_summary = invoices.aggregate(
+        total_sales=Sum('total_amount'),
+        invoice_count=Count('id'),
+    )
+
+    # Daily sales for the selected period
+    daily_sales = (
+        invoices.annotate(day=TruncDate('created_at'))
+        .values('day')
+        .annotate(
+            sales=Sum('total_amount'),
+            invoice_count=Count('id'),
+        )
+        .order_by('day')
+    )
+
+    # Sales grouped by distributor
+    distributor_sales = (
+        invoices.values(
+            'distributor__username',
+            'distributor__first_name',
+        )
+        .annotate(
+            total_sales=Sum('total_amount'),
+            invoice_count=Count('id'),
+        )
+        .order_by('-total_sales')
+    )
+
+    # Products and low-stock items across all distributors
+    products = Product.objects.select_related('distributor').order_by('name')
+    low_stock_products = products.filter(stock__lte=5)
+
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'invoices': invoices,
+        'total_sales': sales_summary['total_sales'] or Decimal('0.00'),
+        'invoice_count': sales_summary['invoice_count'] or 0,
+        'daily_sales': daily_sales,
+        'distributor_sales': distributor_sales,
+        'total_products': products.count(),
+        'low_stock_products': low_stock_products,
+        'low_stock_count': low_stock_products.count(),
+    }
+
+    return render(request, 'accounts/admin_reports.html', context)
+
+
+
+# VIEW ALL DISTRIBUTORS
+@login_required(login_url='admin_login')
+def view_distributors(request):
+    if not request.user.is_staff and not request.user.is_superuser:
+        messages.error(request, "Admin access required.")
+        return redirect('distributor_login')
+
+    search = request.GET.get('q', '').strip()
+
+    distributors = DistributorProfile.objects.select_related('user')
+
+    if search:
+        distributors = distributors.filter(
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(phone__icontains=search)
+        )
+
+    distributors = distributors.order_by('-created_at')
+
+    paginator = Paginator(distributors, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'accounts/view_distributors.html', {
+        'page_obj': page_obj,
+        'search': search,
+    })
+
+
+# VIEW ALL CUSTOMERS
+@login_required(login_url='admin_login')
+def view_customers(request):
+    if not request.user.is_staff and not request.user.is_superuser:
+        messages.error(request, "Admin access required.")
+        return redirect('distributor_login')
+
+    search = request.GET.get('q', '').strip()
+
+    customers = Customer.objects.all()
+
+    if search:
+        customers = customers.filter(
+            Q(name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(address__icontains=search)
+        )
+
+    customers = customers.order_by('-id')
+
+    paginator = Paginator(customers, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'accounts/view_customers.html', {
+        'page_obj': page_obj,
+        'search': search,
+    })
+
+
+# VIEW ALL PRODUCTS
+@login_required(login_url='admin_login')
+def view_products(request):
+    if not request.user.is_staff and not request.user.is_superuser:
+        messages.error(request, "Admin access required.")
+        return redirect('distributor_login')
+
+    search = request.GET.get('q', '').strip()
+
+    products = Product.objects.select_related('distributor')
+
+    if search:
+        products = products.filter(
+            Q(name__icontains=search) |
+            Q(category__icontains=search) |
+            Q(distributor__username__icontains=search) |
+            Q(distributor__first_name__icontains=search)
+        )
+
+    products = products.order_by('-created_at')
+
+    paginator = Paginator(products, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'accounts/view_products.html', {
+        'page_obj': page_obj,
+        'search': search,
+    })

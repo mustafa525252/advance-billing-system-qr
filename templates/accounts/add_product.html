@@ -1,96 +1,82 @@
+
 {% extends 'accounts/base.html' %}
 
-
-{% block title %}
-    Add Product | Advance Billing System
-{% endblock %}
-
+{% block title %}Add Product | Advance Billing System{% endblock %}
 
 {% block extra_css %}
-
 <style>
-
     .page {
-        max-width: 750px;
-        margin: 40px auto;
-        padding: 0 20px;
+        max-width: 800px;
+        margin: 35px auto;
+        padding: 0 20px 30px;
+    }
+
+    .breadcrumb {
+        margin-bottom: 18px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .breadcrumb a {
+        color: #059669;
+        text-decoration: none;
+        font-weight: 600;
     }
 
     .page-header {
-        margin-bottom: 25px;
+        margin-bottom: 24px;
     }
 
     .page-header h1 {
+        margin: 0 0 8px;
         font-size: 28px;
-        margin-bottom: 8px;
+        color: #111827;
+        font-weight: 700;
     }
 
     .page-header p {
+        margin: 0;
         color: #6b7280;
         font-size: 14px;
+        line-height: 1.6;
     }
-
-
-    /* FORM CARD */
 
     .form-card {
-        background: white;
-        padding: 35px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
         border-radius: 14px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
     }
 
-
-    /* FORM GRID */
-
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+    .card-heading {
+        padding: 20px 26px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #fafcfb;
     }
 
-    .form-group {
-        margin-bottom: 18px;
+    .card-heading h2 {
+        margin: 0 0 5px;
+        font-size: 17px;
+        color: #111827;
     }
 
-    .form-group.full-width {
-        grid-column: 1 / -1;
+    .card-heading p {
+        margin: 0;
+        font-size: 13px;
+        color: #6b7280;
     }
 
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
+    .form-body {
+        padding: 28px 26px;
     }
-
-    .required {
-        color: #dc2626;
-    }
-
-    .form-group input {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        outline: none;
-        font-size: 14px;
-    }
-
-    .form-group input:focus {
-        border-color: #059669;
-        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-    }
-
-
-    /* MESSAGES */
 
     .message {
         padding: 13px 15px;
         margin-bottom: 20px;
         border-radius: 8px;
         font-size: 14px;
+        line-height: 1.5;
     }
 
     .message.success {
@@ -105,45 +91,137 @@
         border: 1px solid #fecaca;
     }
 
+    .message.warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
 
-    /* BUTTONS */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 22px;
+        row-gap: 5px;
+    }
+
+    .form-group {
+        margin-bottom: 19px;
+        min-width: 0;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .required {
+        color: #dc2626;
+    }
+
+    .form-group input {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 45px;
+        padding: 11px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .form-group input::placeholder {
+        color: #9ca3af;
+    }
+
+    .form-group input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, .12);
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 7px;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.5;
+    }
 
     .form-actions {
         display: flex;
+        justify-content: flex-end;
         gap: 12px;
-        margin-top: 25px;
+        padding-top: 22px;
+        margin-top: 5px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .save-btn,
+    .cancel-btn {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 44px;
+        padding: 11px 20px;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .2s, border-color .2s;
     }
 
     .save-btn {
-        flex: 1;
-        padding: 13px;
-        border: none;
-        border-radius: 8px;
+        border: 1px solid #059669;
         background: #059669;
-        color: white;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
+        color: #fff;
     }
 
     .save-btn:hover {
+        border-color: #047857;
         background: #047857;
     }
 
     .cancel-btn {
-        padding: 13px 22px;
-        border-radius: 8px;
-        text-decoration: none;
-        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        background: #fff;
         color: #374151;
-        font-size: 14px;
-        font-weight: 600;
     }
 
+    .cancel-btn:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
 
-    /* RESPONSIVE */
+    @media (max-width: 600px) {
+        .page {
+            margin-top: 22px;
+            padding: 0 12px 24px;
+        }
 
-    @media (max-width: 650px) {
+        .page-header h1 {
+            font-size: 24px;
+        }
+
+        .card-heading {
+            padding: 18px;
+        }
+
+        .form-body {
+            padding: 20px 18px;
+        }
 
         .form-grid {
             grid-template-columns: 1fr;
@@ -154,209 +232,152 @@
         }
 
         .form-actions {
-            flex-direction: column;
+            flex-direction: column-reverse;
         }
 
+        .save-btn,
         .cancel-btn {
-            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
         }
-
     }
-
 </style>
-
 {% endblock %}
 
-
 {% block content %}
-
 <div class="page">
 
-
-    <div class="page-header">
-
-        <h1>Add New Product</h1>
-
-        <p>
-            Enter product details to add it to your inventory.
-        </p>
-
+    <div class="breadcrumb">
+        <a href="{% url 'product_list' %}">Products</a>
+        / Add Product
     </div>
 
+    <div class="page-header">
+        <h1>Add New Product</h1>
+        <p>Add a product to your inventory and configure its price, stock and GST rate.</p>
+    </div>
 
     <div class="form-card">
 
+        <div class="card-heading">
+            <h2>Product Information</h2>
+            <p>Fields marked with <span class="required">*</span> are required.</p>
+        </div>
 
-        <!-- SUCCESS / ERROR MESSAGES -->
+        <div class="form-body">
 
-        {% if messages %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}" role="status">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
 
-            {% for message in messages %}
+            <form method="POST">
+                {% csrf_token %}
 
-                <div class="message {{ message.tags }}">
+                <div class="form-grid">
 
-                    {{ message }}
+                    <div class="form-group full-width">
+                        <label for="name">
+                            Product Name <span class="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="e.g. Wireless Keyboard"
+                            maxlength="200"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
 
-                </div>
+                    <div class="form-group">
+                        <label for="category">
+                            Category <span class="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="category"
+                            name="category"
+                            placeholder="e.g. Electronics"
+                            maxlength="100"
+                            required
+                        >
+                    </div>
 
-            {% endfor %}
+                    <div class="form-group">
+                        <label for="price">
+                            Price (₹) <span class="required">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="price"
+                            name="price"
+                            placeholder="0.00"
+                            min="0.01"
+                            step="0.01"
+                            required
+                        >
+                        <span class="field-help">
+                            Enter the product price before GST.
+                        </span>
+                    </div>
 
-        {% endif %}
+                    <div class="form-group">
+                        <label for="stock">
+                            Stock Quantity <span class="required">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="stock"
+                            name="stock"
+                            placeholder="Enter quantity"
+                            min="0"
+                            step="1"
+                            required
+                        >
+                        <span class="field-help">
+                            Enter 0 if the product is currently unavailable.
+                        </span>
+                    </div>
 
-
-        <form method="POST">
-
-            {% csrf_token %}
-
-
-            <div class="form-grid">
-
-
-                <!-- PRODUCT NAME -->
-
-                <div class="form-group full-width">
-
-                    <label for="name">
-
-                        Product Name
-                        <span class="required">*</span>
-
-                    </label>
-
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        placeholder="Enter product name"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- CATEGORY -->
-
-                <div class="form-group">
-
-                    <label for="category">
-
-                        Category
-                        <span class="required">*</span>
-
-                    </label>
-
-                    <input
-                        type="text"
-                        id="category"
-                        name="category"
-                        placeholder="Example: Electronics"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- PRICE -->
-
-                <div class="form-group">
-
-                    <label for="price">
-
-                        Price
-                        <span class="required">*</span>
-
-                    </label>
-
-                    <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        placeholder="Enter product price"
-                        min="0.01"
-                        step="0.01"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- STOCK -->
-
-                <div class="form-group">
-
-                    <label for="stock">
-
-                        Stock Quantity
-                        <span class="required">*</span>
-
-                    </label>
-
-                    <input
-                        type="number"
-                        id="stock"
-                        name="stock"
-                        placeholder="Enter available stock"
-                        min="0"
-                        step="1"
-                        required
-                    >
+                    <div class="form-group">
+                        <label for="gst_rate">
+                            GST Rate (%) <span class="required">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="gst_rate"
+                            name="gst_rate"
+                            placeholder="e.g. 18"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value="0"
+                            required
+                        >
+                        <span class="field-help">
+                            Enter the applicable GST percentage.
+                        </span>
+                    </div>
 
                 </div>
 
+                <div class="form-actions">
+                    <a href="{% url 'product_list' %}" class="cancel-btn">
+                        Cancel
+                    </a>
 
-                <!-- GST RATE -->
-
-                <div class="form-group">
-
-                    <label for="gst_rate">
-
-                        GST Rate (%)
-                        <span class="required">*</span>
-
-                    </label>
-
-                    <input
-                        type="number"
-                        id="gst_rate"
-                        name="gst_rate"
-                        placeholder="Example: 18"
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        value="0"
-                        required
-                    >
-
+                    <button type="submit" class="save-btn">
+                        Save Product
+                    </button>
                 </div>
 
-
-            </div>
-
-
-            <div class="form-actions">
-
-                <a
-                    href="{% url 'distributor_dashboard' %}"
-                    class="cancel-btn"
-                >
-                    Cancel
-                </a>
-
-                <button
-                    type="submit"
-                    class="save-btn"
-                >
-                    Save Product
-                </button>
-
-            </div>
-
-
-        </form>
-
+            </form>
+        </div>
     </div>
-
-
 </div>
-
 {% endblock %}

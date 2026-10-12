@@ -1,106 +1,136 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Registration</title>
+{% extends 'accounts/base.html' %}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+{% block title %}
+    Register Customer | Advance Billing System
+{% endblock %}
 
-    <style>
-        body {
-            background: #f3f6fb;
-            font-family: Arial, sans-serif;
-            color: #243047;
-        }
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet">
 
-        .registration-card {
-            max-width: 850px;
-            margin: 45px auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 8px 28px rgba(31, 48, 75, 0.09);
-            overflow: hidden;
-        }
+<style>
+    .registration-page {
+        max-width: 900px;
+        margin: 45px auto;
+        padding: 0 20px;
+    }
 
-        .form-header {
-            background: #1746a2;
-            color: white;
-            padding: 28px 32px;
-        }
+    .registration-card {
+        background: #fff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 28px rgba(31, 48, 75, 0.09);
+        border: 1px solid #e5e7eb;
+    }
 
-        .form-header h2 {
-            margin: 0 0 8px;
-            font-weight: 700;
+    .form-header {
+        background: #1f2937;
+        color: white;
+        padding: 28px 32px;
+        border-bottom: 4px solid #059669;
+    }
+
+    .form-header h2 {
+        margin: 0 0 8px;
+        font-weight: 700;
+        font-size: 26px;
+    }
+
+    .form-header p {
+        color: #d1d5db;
+        font-size: 14px;
+    }
+
+    .form-body {
+        padding: 32px;
+    }
+
+    .section-title {
+        font-size: 17px;
+        font-weight: 700;
+        margin: 10px 0 20px;
+        color: #047857;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .form-control {
+        min-height: 45px;
+        border-radius: 8px;
+        border-color: #d8dfeb;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+    }
+
+    textarea.form-control {
+        min-height: 95px;
+    }
+
+    .btn-register {
+        background: #059669;
+        border: 1px solid #059669;
+        color: white;
+        padding: 11px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-register:hover {
+        background: #047857;
+        border-color: #047857;
+        color: white;
+    }
+
+    .btn-clear {
+        padding: 11px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .required-mark {
+        color: #dc2626;
+    }
+
+    .form-note {
+        color: #6b7280;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    @media (max-width: 576px) {
+        .registration-page {
+            margin: 22px auto;
+            padding: 0 14px;
         }
 
         .form-body {
-            padding: 32px;
+            padding: 22px;
         }
 
-        .form-label {
-            font-weight: 600;
-            margin-bottom: 8px;
+        .form-header {
+            padding: 24px 22px;
         }
 
-        .form-control {
-            min-height: 45px;
-            border-radius: 8px;
-            border-color: #d8dfeb;
+        .form-header h2 {
+            font-size: 22px;
         }
+    }
+</style>
+{% endblock %}
 
-        .form-control:focus {
-            border-color: #1746a2;
-            box-shadow: 0 0 0 3px rgba(23, 70, 162, 0.1);
-        }
 
-        textarea.form-control {
-            min-height: 95px;
-        }
+{% block content %}
+<div class="registration-page">
 
-        .section-title {
-            font-size: 17px;
-            font-weight: 700;
-            margin: 10px 0 20px;
-            color: #1746a2;
-        }
-
-        .btn-primary {
-            background: #1746a2;
-            border-color: #1746a2;
-            padding: 11px 24px;
-            border-radius: 8px;
-        }
-
-        .btn-primary:hover {
-            background: #10357c;
-            border-color: #10357c;
-        }
-
-        .btn-outline-secondary {
-            padding: 11px 24px;
-            border-radius: 8px;
-        }
-
-        @media (max-width: 576px) {
-            .registration-card {
-                margin: 15px;
-            }
-
-            .form-body {
-                padding: 22px;
-            }
-
-            .form-header {
-                padding: 24px 22px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-<div class="container">
     <div class="registration-card">
 
         <div class="form-header">
@@ -132,9 +162,10 @@
                 <h5 class="section-title">Customer Information</h5>
 
                 <div class="row g-3">
+
                     <div class="col-md-6">
                         <label for="name" class="form-label">
-                            Customer Name *
+                            Customer Name <span class="required-mark">*</span>
                         </label>
                         <input type="text"
                                class="form-control"
@@ -148,7 +179,7 @@
 
                     <div class="col-md-6">
                         <label for="email" class="form-label">
-                            Email Address *
+                            Email Address <span class="required-mark">*</span>
                         </label>
                         <input type="email"
                                class="form-control"
@@ -162,7 +193,7 @@
 
                     <div class="col-md-6">
                         <label for="phone" class="form-label">
-                            Phone Number *
+                            Phone Number <span class="required-mark">*</span>
                         </label>
                         <input type="tel"
                                class="form-control"
@@ -173,6 +204,7 @@
                                autocomplete="tel"
                                required>
                     </div>
+
                 </div>
 
                 <hr class="my-4">
@@ -180,9 +212,10 @@
                 <h5 class="section-title">Billing Address</h5>
 
                 <div class="row g-3">
+
                     <div class="col-12">
                         <label for="street_address" class="form-label">
-                            Street Address *
+                            Street Address <span class="required-mark">*</span>
                         </label>
                         <textarea class="form-control"
                                   id="street_address"
@@ -193,7 +226,9 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="city" class="form-label">City *</label>
+                        <label for="city" class="form-label">
+                            City <span class="required-mark">*</span>
+                        </label>
                         <input type="text"
                                class="form-control"
                                id="city"
@@ -204,7 +239,9 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="state" class="form-label">State *</label>
+                        <label for="state" class="form-label">
+                            State <span class="required-mark">*</span>
+                        </label>
                         <input type="text"
                                class="form-control"
                                id="state"
@@ -216,7 +253,7 @@
 
                     <div class="col-md-6">
                         <label for="pincode" class="form-label">
-                            PIN Code *
+                            PIN Code <span class="required-mark">*</span>
                         </label>
                         <input type="text"
                                class="form-control"
@@ -240,26 +277,30 @@
                                value="India"
                                autocomplete="country-name">
                     </div>
+
                 </div>
 
                 <hr class="my-4">
 
                 <div class="d-flex flex-wrap justify-content-end gap-2">
                     <button type="reset"
-                            class="btn btn-outline-secondary">
+                            class="btn btn-outline-secondary btn-clear">
                         Clear Form
                     </button>
 
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-register">
                         Register Customer
                     </button>
                 </div>
+
             </form>
 
         </div>
     </div>
 </div>
+{% endblock %}
 
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

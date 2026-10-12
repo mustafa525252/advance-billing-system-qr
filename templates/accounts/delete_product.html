@@ -1,151 +1,237 @@
+
 {% extends 'accounts/base.html' %}
 
-{% block title %}
-    Delete Product | Advance Billing System
-{% endblock %}
+{% block title %}Delete Product | Advance Billing System{% endblock %}
 
 {% block extra_css %}
-
 <style>
-
     .page {
-        max-width: 600px;
-        margin: 60px auto;
-        padding: 0 20px;
+        max-width: 650px;
+        margin: 45px auto;
+        padding: 0 20px 30px;
+    }
+
+    .breadcrumb {
+        margin-bottom: 18px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .breadcrumb a {
+        color: #059669;
+        text-decoration: none;
+        font-weight: 600;
     }
 
     .delete-card {
-        background: white;
-        padding: 35px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e5e7eb;
         border-radius: 14px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+        box-shadow: 0 4px 20px rgba(15, 23, 42, .05);
+    }
+
+    .card-header {
+        padding: 24px;
         text-align: center;
+        background: #fffafa;
+        border-bottom: 1px solid #fee2e2;
     }
 
     .warning-icon {
-        width: 70px;
-        height: 70px;
-        margin: 0 auto 20px;
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 16px;
         display: flex;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
         border-radius: 50%;
         background: #fee2e2;
-        font-size: 32px;
+        color: #b91c1c;
+        font-size: 30px;
     }
 
-    .delete-card h1 {
-        margin-bottom: 12px;
+    .card-header h1 {
+        margin: 0 0 8px;
+        color: #111827;
         font-size: 25px;
-        color: #1f2937;
+        font-weight: 700;
     }
 
-    .delete-card p {
+    .card-header p {
+        margin: 0;
         color: #6b7280;
+        font-size: 14px;
         line-height: 1.6;
-        margin-bottom: 25px;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .product-details {
+        padding: 18px;
+        margin-bottom: 20px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        text-align: left;
+    }
+
+    .detail-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .5px;
     }
 
     .product-name {
-        color: #dc2626;
+        display: block;
+        overflow-wrap: anywhere;
+        color: #b91c1c;
+        font-size: 17px;
         font-weight: 700;
+    }
+
+    .warning-note {
+        margin: 0 0 24px;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.7;
     }
 
     .button-group {
         display: flex;
-        justify-content: center;
+        justify-content: flex-end;
         gap: 12px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
     }
 
     .cancel-btn,
     .delete-btn {
-        padding: 12px 20px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 44px;
+        padding: 11px 19px;
+        border: 1px solid transparent;
         border-radius: 8px;
-        text-decoration: none;
+        font-family: inherit;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
+        text-decoration: none;
         cursor: pointer;
+        transition: background .2s, border-color .2s;
     }
 
     .cancel-btn {
-        background: #f3f4f6;
+        background: #fff;
         color: #374151;
+        border-color: #d1d5db;
     }
 
     .cancel-btn:hover {
-        background: #e5e7eb;
+        background: #f9fafb;
+        border-color: #9ca3af;
     }
 
     .delete-btn {
-        border: none;
         background: #dc2626;
-        color: white;
+        color: #fff;
+        border-color: #dc2626;
     }
 
     .delete-btn:hover {
         background: #b91c1c;
+        border-color: #b91c1c;
     }
 
-</style>
+    @media (max-width: 500px) {
+        .page {
+            margin-top: 25px;
+            padding: 0 12px 24px;
+        }
 
+        .card-header {
+            padding: 22px 18px;
+        }
+
+        .card-body {
+            padding: 18px;
+        }
+
+        .card-header h1 {
+            font-size: 22px;
+        }
+
+        .button-group {
+            flex-direction: column-reverse;
+        }
+
+        .cancel-btn,
+        .delete-btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+</style>
 {% endblock %}
 
-
 {% block content %}
-
 <div class="page">
+
+    <div class="breadcrumb">
+        <a href="{% url 'product_list' %}">Products</a>
+        / Delete Product
+    </div>
 
     <div class="delete-card">
 
-        <div class="warning-icon">
-            ⚠️
+        <div class="card-header">
+            <div class="warning-icon" aria-hidden="true">!</div>
+
+            <h1>Delete Product?</h1>
+
+            <p>
+                Please confirm that you want to remove this product
+                from your inventory.
+            </p>
         </div>
 
-        <h1>
-            Delete Product?
-        </h1>
+        <div class="card-body">
 
-        <p>
-
-            Are you sure you want to delete
-
-            <span class="product-name">
-                "{{ product.name }}"
-            </span>
-
-            ?
-
-            This action cannot be undone.
-
-        </p>
-
-
-        <form method="POST">
-
-            {% csrf_token %}
-
-            <div class="button-group">
-
-                <a
-                    href="{% url 'product_list' %}"
-                    class="cancel-btn"
-                >
-                    Cancel
-                </a>
-
-                <button
-                    type="submit"
-                    class="delete-btn"
-                >
-                    Yes, Delete
-                </button>
-
+            <div class="product-details">
+                <span class="detail-label">Product to be deleted</span>
+                <span class="product-name">{{ product.name }}</span>
             </div>
 
-        </form>
+            <p class="warning-note">
+                This action cannot be undone. If this product is linked
+                to an invoice, your application may prevent deletion
+                because the product is protected by the invoice-item
+                relationship.
+            </p>
 
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="button-group">
+                    <a href="{% url 'product_list' %}" class="cancel-btn">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="delete-btn">
+                        Yes, Delete Product
+                    </button>
+                </div>
+            </form>
+
+        </div>
     </div>
 
 </div>
-
 {% endblock %}

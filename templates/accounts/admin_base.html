@@ -2,13 +2,8 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>
         {% block title %}
@@ -17,59 +12,118 @@
     </title>
 
     <style>
+        :root {
+            --primary: #059669;
+            --primary-dark: #047857;
+            --navy: #111827;
+            --navy-light: #1f2937;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --background: #f4f6f9;
+            --white: #ffffff;
+            --border: #e5e7eb;
+        }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
             min-height: 100vh;
-            background: #f4f6f9;
-            color: #1f2937;
+            background: var(--background);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
         }
 
+        a {
+            text-decoration: none;
+        }
 
         /* HEADER */
 
         .navbar {
-            height: 70px;
-            background: #1f2937;
+            min-height: 74px;
+            background: var(--navy);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 45px;
-            color: white;
+            gap: 24px;
+            padding: 14px 4%;
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(17, 24, 39, 0.15);
+            position: relative;
+            z-index: 10;
         }
 
         .brand {
-            font-size: 20px;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--white);
+            font-size: 19px;
+            font-weight: 800;
+            white-space: nowrap;
+            letter-spacing: -0.3px;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            font-size: 21px;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand-subtitle {
+            color: #9ca3af;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            font-weight: 600;
         }
 
         .brand span {
-            color: #10b981;
+            color: #34d399;
         }
-
 
         /* NAVIGATION */
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .nav-links a {
             color: #d1d5db;
-            text-decoration: none;
-            padding: 10px 14px;
-            border-radius: 7px;
-            font-size: 14px;
+            padding: 11px 13px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 600;
-            transition: 0.2s;
+            transition: background 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
         }
 
         .nav-links a:hover {
@@ -77,147 +131,192 @@
             color: white;
         }
 
-        .nav-links .active {
-            background: #059669;
+        .nav-links a.active {
+            background: var(--primary);
             color: white;
         }
 
-        .logout {
-            margin-left: 10px;
+        .nav-links .logout {
+            margin-left: 5px;
             background: #374151;
+            color: #fecaca;
         }
 
-        .logout:hover {
-            background: #dc2626 !important;
+        .nav-links .logout:hover {
+            background: #dc2626;
+            color: white;
         }
-
 
         /* MAIN CONTENT */
 
         main {
-            min-height: calc(100vh - 140px);
+            flex: 1;
+            width: 100%;
+            min-height: calc(100vh - 150px);
         }
-
 
         /* FOOTER */
 
         footer {
-            background: #1f2937;
+            background: var(--navy);
             color: #9ca3af;
             text-align: center;
-            padding: 20px;
-            font-size: 13px;
+            padding: 22px 15px;
+            font-size: 12px;
+            border-top: 3px solid var(--primary);
         }
 
+        footer strong {
+            color: #e5e7eb;
+        }
 
-        /* MOBILE */
+        /* GENERAL FORM ELEMENTS */
 
-        @media (max-width: 800px) {
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
 
+        button,
+        input[type="submit"] {
+            cursor: pointer;
+        }
+
+        ::selection {
+            background: #a7f3d0;
+            color: #064e3b;
+        }
+
+        /* TABLET AND MOBILE */
+
+        @media (max-width: 1000px) {
             .navbar {
-                height: auto;
-                padding: 18px 20px;
-                flex-direction: column;
                 align-items: flex-start;
-                gap: 15px;
+                flex-direction: column;
+                gap: 16px;
+                padding: 18px 24px;
             }
 
             .nav-links {
                 width: 100%;
-                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 16px;
+            }
+
+            .brand {
+                font-size: 16px;
+                white-space: normal;
+            }
+
+            .brand-logo {
+                width: 38px;
+                height: 38px;
+                flex-shrink: 0;
+            }
+
+            .nav-links {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+                gap: 7px;
+            }
+
+            .nav-links a {
+                text-align: center;
+                padding: 11px 8px;
+                font-size: 12px;
+            }
+
+            .nav-links .logout {
+                margin-left: 0;
             }
 
             main {
-                min-height: calc(100vh - 200px);
+                min-height: calc(100vh - 230px);
             }
-
         }
-
     </style>
 
     {% block extra_css %}
     {% endblock %}
-
 </head>
-
 
 <body>
 
-
     <!-- HEADER -->
+    <header>
+        <nav class="navbar">
 
-    <nav class="navbar">
+            <a href="{% url 'admin_dashboard' %}" class="brand">
+                <div class="brand-logo">A</div>
 
-        <div class="brand">
-
-            Advance Billing System
-            <span>Admin</span>
-
-        </div>
-
-
-        <div class="nav-links">
-
-            <a
-                href="{% url 'admin_dashboard' %}"
-            >
-                Dashboard
+                <div class="brand-text">
+                    <div>
+                        Advance Billing <span>System</span>
+                    </div>
+                    <div class="brand-subtitle">Administration Panel</div>
+                </div>
             </a>
 
-            <a
-                href="#distributors"
-            >
-                Distributors
-            </a>
+            <div class="nav-links">
 
-            <a
-                href="#customers"
-            >
-                Customers
-            </a>
+                <a
+                    href="{% url 'admin_dashboard' %}"
+                    class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+                >
+                    Dashboard
+                </a>
 
-            <a
-                href="#products"
-            >
-                Products
-            </a>
+                <a href="{% url 'view_distributors' %}" class="{% if request.resolver_match.url_name == 'view_distributors' %}active{% endif %}">
+                    Distributors
+                </a>
 
-            <a
-                href="{% url 'logout' %}"
-                class="logout"
-            >
-                Logout
-            </a>
+                <a href="{% url 'view_customers' %}" class="{% if request.resolver_match.url_name == 'view_customers' %}active{% endif %}">
+                    Customers
+                </a>
 
-        </div>
 
-    </nav>
+                <a href="{% url 'view_products' %}" class="{% if request.resolver_match.url_name == 'view_products' %}active{% endif %}">
+                    Products
+                </a>
 
+                <a
+                    href="{% url 'admin_reports' %}"
+                    class="{% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}"
+                >
+                    Reports
+                </a>
+
+                <a href="{% url 'logout' %}" class="logout">
+                    Logout
+                </a>
+
+            </div>
+
+        </nav>
+    </header>
 
     <!-- PAGE CONTENT -->
-
     <main>
-
         {% block content %}
         {% endblock %}
-
     </main>
 
-
     <!-- FOOTER -->
-
     <footer>
-
-        © 2026 Advance Billing System.
-        Admin Panel.
-
+        © 2026 <strong>Advance Billing System</strong>.
+        All rights reserved.
     </footer>
-
 
     {% block extra_js %}
     {% endblock %}
 
-
 </body>
-
 </html>
