@@ -27,6 +27,9 @@ import json
 from django.core.validators import validate_email
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
+from django.template.loader import get_template
+import cv2
+import numpy as np
 # Create your views here.
 
 
@@ -2493,6 +2496,7 @@ def validate_product_data(request):
         'gst_rate': gst_rate,
     }
     
+
 @login_required(login_url='admin_login')
 def admin_reports(request):
     if not request.user.is_staff:
@@ -2502,42 +2506,74 @@ def admin_reports(request):
     today = timezone.localdate()
     default_start = today - timedelta(days=29)
 
-    start_date = request.GET.get('start_date', default_start.isoformat())
-    end_date = request.GET.get('end_date', today.isoformat())
+    # Defaults for the initial page load
+    start_date = default_start.isoformat()
+    end_date = today.isoformat()
 
-    # Validate date inputs
-    try:
-        start = timezone.datetime.strptime(
-            start_date, '%Y-%m-%d'
-        ).date()
-        end = timezone.datetime.strptime(
-            end_date, '%Y-%m-%d'
-        ).date()
+    # Track whether the user actually submitted date filters
+    has_date_filter = (
+        'start_date' in request.GET
+        or 'end_date' in request.GET
+    )
 
-        if start > end:
-            raise ValueError
+    if has_date_filter:
+        start_date = request.GET.get('start_date', '').strip()
+        end_date = request.GET.get('end_date', '').strip()
 
-    except (ValueError, TypeError):
-        messages.error(
-            request,
-            'Please select a valid date range.'
-        )
+        try:
+            if not start_date or not end_date:
+                raise ValueError(
+                    'Both start date and end date are required.'
+                )
+
+            start = timezone.datetime.strptime(
+                start_date, '%Y-%m-%d'
+            ).date()
+
+            end = timezone.datetime.strptime(
+                end_date, '%Y-%m-%d'
+            ).date()
+
+            # Reject impossible dates and reversed ranges
+            if start.isoformat() != start_date:
+                raise ValueError('Invalid start date.')
+
+            if end.isoformat() != end_date:
+                raise ValueError('Invalid end date.')
+
+            if start > end:
+                raise ValueError(
+                    'Start date cannot be after end date.'
+                )
+
+        except (ValueError, TypeError):
+            messages.error(
+                request,
+                'Select both valid dates. The start date must '
+                'be on or before the end date.'
+            )
+            start = default_start
+            end = today
+            start_date = start.isoformat()
+            end_date = end.isoformat()
+    else:
         start = default_start
         end = today
-        start_date = start.isoformat()
-        end_date = end.isoformat()
 
-    # Invoices within the selected date range
-    invoices = Invoice.objects.filter(
-        created_at__date__range=(start, end)
-    ).select_related('customer', 'distributor').order_by('-created_at')
+    # Filter invoices using the validated date range
+    invoices = (
+        Invoice.objects.filter(
+            created_at__date__range=(start, end)
+        )
+        .select_related('customer', 'distributor')
+        .order_by('-created_at')
+    )
 
     sales_summary = invoices.aggregate(
         total_sales=Sum('total_amount'),
         invoice_count=Count('id'),
     )
 
-    # Daily sales for the selected period
     daily_sales = (
         invoices.annotate(day=TruncDate('created_at'))
         .values('day')
@@ -2548,7 +2584,6 @@ def admin_reports(request):
         .order_by('day')
     )
 
-    # Sales grouped by distributor
     distributor_sales = (
         invoices.values(
             'distributor__username',
@@ -2561,15 +2596,19 @@ def admin_reports(request):
         .order_by('-total_sales')
     )
 
-    # Products and low-stock items across all distributors
-    products = Product.objects.select_related('distributor').order_by('name')
+    products = Product.objects.select_related(
+        'distributor'
+    ).order_by('name')
+
     low_stock_products = products.filter(stock__lte=5)
 
     context = {
         'start_date': start_date,
         'end_date': end_date,
         'invoices': invoices,
-        'total_sales': sales_summary['total_sales'] or Decimal('0.00'),
+        'total_sales': (
+            sales_summary['total_sales'] or Decimal('0.00')
+        ),
         'invoice_count': sales_summary['invoice_count'] or 0,
         'daily_sales': daily_sales,
         'distributor_sales': distributor_sales,
@@ -2578,7 +2617,93 @@ def admin_reports(request):
         'low_stock_count': low_stock_products.count(),
     }
 
-    return render(request, 'accounts/admin_reports.html', context)
+    return render(
+        request,
+        'accounts/admin_reports.html',
+        context
+    )
+
+
+@login_required(login_url='admin_login')
+def admin_reports_pdf(request):
+    if not request.user.is_staff:
+        messages.error(request, 'Admin access required.')
+        return redirect('distributor_login')
+
+    start_date = request.GET.get('start_date', '').strip()
+    end_date = request.GET.get('end_date', '').strip()
+
+    try:
+        if not start_date or not end_date:
+            raise ValueError
+
+        start = timezone.datetime.strptime(
+            start_date, '%Y-%m-%d'
+        ).date()
+
+        end = timezone.datetime.strptime(
+            end_date, '%Y-%m-%d'
+        ).date()
+
+        if (
+            start.isoformat() != start_date
+            or end.isoformat() != end_date
+            or start > end
+        ):
+            raise ValueError
+
+    except (ValueError, TypeError):
+        messages.error(
+            request,
+            'Please select a valid date range before downloading.'
+        )
+        return redirect('admin_reports')
+
+    invoices = (
+        Invoice.objects.filter(
+            created_at__date__range=(start, end)
+        )
+        .select_related('customer', 'distributor')
+        .order_by('-created_at')
+    )
+
+    summary = invoices.aggregate(
+        total_sales=Sum('total_amount'),
+        invoice_count=Count('id'),
+    )
+
+    context = {
+        'start_date': start,
+        'end_date': end,
+        'invoices': invoices,
+        'total_sales': (
+            summary['total_sales'] or Decimal('0.00')
+        ),
+        'invoice_count': summary['invoice_count'] or 0,
+    }
+
+    template = get_template('accounts/admin_reports_pdf.html')
+    html = template.render(context, request)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        'attachment; filename="invoice_report.pdf"'
+    )
+
+    result = pisa.CreatePDF(
+        html,
+        dest=response,
+        encoding='utf-8',
+    )
+
+    if result.err:
+        return HttpResponse(
+            'Unable to generate the PDF report.',
+            status=500,
+        )
+
+    return response
+
 
 
 
@@ -2671,3 +2796,57 @@ def view_products(request):
         'page_obj': page_obj,
         'search': search,
     })
+    
+
+@login_required(login_url='admin_login')
+def qr_decoder(request):
+    decoded_data = None
+    error = None
+
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('qr_image')
+
+        if not uploaded_file:
+            error = 'Please select a QR code image.'
+        elif uploaded_file.size > 5 * 1024 * 1024:
+            error = 'Image size must be 5 MB or less.'
+        else:
+            try:
+                # Read the uploaded image without saving it to disk
+                image_bytes = uploaded_file.read()
+
+                image_array = np.frombuffer(
+                    image_bytes,
+                    dtype=np.uint8
+                )
+
+                image = cv2.imdecode(
+                    image_array,
+                    cv2.IMREAD_COLOR
+                )
+
+                if image is None:
+                    error = 'The uploaded file is not a valid image.'
+                else:
+                    detector = cv2.QRCodeDetector()
+                    decoded_data, points, _ = detector.detectAndDecode(
+                        image
+                    )
+
+                    if not decoded_data:
+                        error = (
+                            'No readable QR code was found. '
+                            'Try a clearer image.'
+                        )
+
+            except (cv2.error, ValueError, TypeError):
+                error = 'Unable to read this image. Please try another.'
+
+    return render(
+        request,
+        'accounts/qr_decoder.html',
+        {
+            'decoded_data': decoded_data,
+            'error': error,
+        }
+    )

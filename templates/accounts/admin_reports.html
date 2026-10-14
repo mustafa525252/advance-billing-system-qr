@@ -280,6 +280,15 @@
             <a href="{% url 'admin_reports' %}" class="btn btn-secondary">
                 Reset
             </a>
+            
+<a
+    href="{% url 'admin_reports_pdf' %}?start_date={{ start_date }}&end_date={{ end_date }}"
+    class="btn btn-secondary"
+    target="_blank"
+>
+    Download PDF
+</a>
+
         </form>
     </div>
 

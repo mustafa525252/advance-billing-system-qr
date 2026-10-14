@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Report</title>
+
+    
+<style>
+    @page {
+        size: A4 landscape;
+        margin: 25px;
+    }
+
+    body {
+        font-family: Helvetica, sans-serif;
+        font-size: 10px;
+        color: #222222;
+    }
+
+    table.invoices {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .invoices th,
+    .invoices td {
+        border: 1px solid #dddddd;
+        padding: 7px 5px;
+        text-align: left;
+        vertical-align: top;
+        word-wrap: break-word;
+    }
+
+    .invoices th {
+        background-color: #eeeeee;
+        font-weight: bold;
+    }
+
+    .invoices .col-number {
+        width: 5%;
+    }
+
+    .invoices .col-invoice {
+        width: 19%;
+    }
+
+    .invoices .col-date {
+        width: 12%;
+    }
+
+    .invoices .col-distributor {
+        width: 20%;
+    }
+
+    .invoices .col-customer {
+        width: 19%;
+    }
+
+    .invoices .col-amount {
+        width: 15%;
+        text-align: right;
+    }
+</style>
+
+</head>
+
+<body>
+    <h1>Advance Billing System</h1>
+    <p class="subtitle">
+        Invoice Report: {{ start_date|date:"d M Y" }}
+        to {{ end_date|date:"d M Y" }}
+    </p>
+
+    <table class="summary">
+        <tr>
+            <td>
+                <div class="label">Total Invoices</div>
+                <div class="value">{{ invoice_count }}</div>
+            </td>
+            <td>
+                <div class="label">Total Invoice Value</div>
+                <div class="value">
+                    Rs. {{ total_sales|floatformat:2 }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <h2>Invoice Details</h2>
+
+    <table class="invoices">
+        
+    <thead>
+        <tr>
+            <th class="col-number">No.</th>
+            <th class="col-invoice">Invoice Number</th>
+            <th class="col-date">Date</th>
+            <th class="col-distributor">Distributor</th>
+            <th class="col-customer">Customer</th>
+            <th class="col-amount">Amount (Rs.)</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for invoice in invoices %}
+        <tr>
+            <td class="col-number">{{ forloop.counter }}</td>
+            <td class="col-invoice">{{ invoice.invoice_number }}</td>
+            <td class="col-date">{{ invoice.created_at|date:"d M Y" }}</td>
+            <td class="col-distributor">
+                {% if invoice.distributor %}
+                    {{ invoice.distributor.get_full_name|default:invoice.distributor.username }}
+                {% else %}
+                    Unassigned
+                {% endif %}
+            </td>
+            <td class="col-customer">{{ invoice.customer.name }}</td>
+            <td class="col-amount">{{ invoice.total_amount|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No invoices found for this date range.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    </table>
+
+    <p class="footer">
+        Generated from the Advance Billing System.
+    </p>
+</body>
+</html>

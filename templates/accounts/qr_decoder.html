@@ -1,0 +1,77 @@
+
+{% extends 'accounts/admin_base.html' %}
+
+{% block title %}
+QR Code Decoder | Advance Billing System
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 800px;">
+
+    <div class="mb-4">
+        <h1>QR Code Decoder</h1>
+        <p>Upload an image to read its QR code data.</p>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    {% if decoded_data %}
+        <div class="alert alert-success" role="status">
+            <h5>QR Code Successfully Decoded</h5>
+            <p class="mb-2">Decoded data:</p>
+            <textarea
+                class="form-control"
+                rows="4"
+                readonly
+            >{{ decoded_data }}</textarea>
+        </div>
+    {% endif %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form
+                method="post"
+                enctype="multipart/form-data"
+            >
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="qr_image" class="form-label">
+                        Select QR Code Image
+                    </label>
+
+                    <input
+                        type="file"
+                        name="qr_image"
+                        id="qr_image"
+                        class="form-control"
+                        accept="image/*"
+                        required
+                    >
+
+                    <small class="text-muted">
+                        Supported image formats depend on OpenCV.
+                        Maximum upload size: 5 MB.
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Decode QR Code
+                </button>
+
+                <a
+                    href="{% url 'qr_decoder' %}"
+                    class="btn btn-outline-secondary"
+                >
+                    Reset
+                </a>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

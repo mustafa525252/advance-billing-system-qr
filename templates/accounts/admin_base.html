@@ -293,6 +293,9 @@
                 >
                     Reports
                 </a>
+                <a href="{% url 'qr_decoder' %}" class="{% if request.resolver_match.url_name == 'qr_decoder' %}active{% endif %}">
+                    QR Code Decoder
+                </a>
 
                 <a href="{% url 'logout' %}" class="logout">
                     Logout
