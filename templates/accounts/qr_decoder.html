@@ -1,47 +1,645 @@
 
 {% extends 'accounts/admin_base.html' %}
 
-{% block title %}
-QR Code Decoder | Advance Billing System
-{% endblock %}
+{% block title %}QR Invoice Decoder | Advance Billing System{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width: 800px;">
+<style>
+    .qr-dashboard {
+        --qr-ink: #17243b;
+        --qr-muted: #738096;
+        --qr-border: #e6eaf0;
+        --qr-accent: #4358d8;
+        max-width: 1250px;
+        margin: 0 auto;
+        padding: 30px 24px 48px;
+        color: var(--qr-ink);
+    }
 
-    <div class="mb-4">
-        <h1>QR Code Decoder</h1>
-        <p>Upload an image to read its QR code data.</p>
-    </div>
+    .qr-dashboard * {
+        box-sizing: border-box;
+    }
 
-    {% if error %}
-        <div class="alert alert-danger" role="alert">
-            {{ error }}
+    .qr-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 32px;
+        margin-bottom: 28px;
+        border-radius: 22px;
+        background: linear-gradient(120deg, #111d35, #243b68 72%, #344c83);
+        color: #fff;
+        box-shadow: 0 14px 35px rgba(20, 35, 65, .16);
+    }
+
+    .qr-hero::after {
+        content: "";
+        position: absolute;
+        width: 230px;
+        height: 230px;
+        right: -55px;
+        top: -105px;
+        border: 35px solid rgba(255,255,255,.07);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .qr-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .qr-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        color: #c7d5ff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+    }
+
+    .qr-hero h1 {
+        margin: 0 0 10px;
+        color: #fff;
+        font-size: clamp(27px, 4vw, 38px);
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .qr-hero p {
+        max-width: 600px;
+        margin: 0;
+        color: #d3dced;
+        font-size: 15px;
+        line-height: 1.7;
+    }
+
+    .qr-hero-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 82px;
+        height: 82px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 22px;
+        background: rgba(255,255,255,.10);
+        font-size: 39px;
+    }
+
+    .qr-section-heading {
+        margin: 0 0 6px;
+        color: var(--qr-ink);
+        font-size: 20px;
+        font-weight: 750;
+        letter-spacing: -.4px;
+    }
+
+    .qr-section-description {
+        margin: 0;
+        color: var(--qr-muted);
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .qr-card {
+        margin-bottom: 24px;
+        overflow: hidden;
+        border: 1px solid var(--qr-border);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 6px 24px rgba(28, 43, 69, .045);
+    }
+
+    .qr-card-header {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 23px 26px;
+        border-bottom: 1px solid #edf0f5;
+    }
+
+    .qr-step-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        flex-shrink: 0;
+        border-radius: 13px;
+        background: #edf1ff;
+        color: #4358d8;
+        font-size: 22px;
+    }
+
+    .qr-card-body {
+        padding: 26px;
+    }
+
+    .qr-drop-area {
+        padding: 27px;
+        border: 1.5px dashed #c6cfdf;
+        border-radius: 15px;
+        background: #f8faff;
+        transition: border-color .2s, background .2s;
+    }
+
+    .qr-drop-area:focus-within {
+        border-color: #6579ec;
+        background: #f2f5ff;
+    }
+
+    .qr-upload-symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 54px;
+        height: 54px;
+        margin-bottom: 15px;
+        border-radius: 15px;
+        background: #e8edff;
+        color: #4358d8;
+        font-size: 26px;
+    }
+
+    .qr-drop-area .form-label {
+        color: var(--qr-ink);
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .qr-drop-area .form-control {
+        min-height: 47px;
+        border-color: #dce2ed;
+        border-radius: 10px;
+        background: #fff;
+        font-size: 13px;
+    }
+
+    .qr-drop-area .form-control:focus {
+        border-color: #6478eb;
+        box-shadow: 0 0 0 3px rgba(67, 88, 216, .12);
+    }
+
+    .qr-hint {
+        display: block;
+        margin-top: 10px;
+        color: #7a879b;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .qr-btn-primary {
+        min-height: 45px;
+        padding: 11px 20px;
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient(110deg, #4358d8, #526ce9);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 5px 13px rgba(67, 88, 216, .2);
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .qr-btn-primary:hover {
+        transform: translateY(-1px);
+        background: #3448c4;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(67, 88, 216, .25);
+    }
+
+    .qr-btn-secondary {
+        min-height: 45px;
+        padding: 10px 19px;
+        border: 1px solid #dce2ed;
+        border-radius: 10px;
+        background: #fff;
+        color: #4c5a70;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .qr-btn-secondary:hover {
+        background: #f3f5f9;
+        color: #17243b;
+    }
+
+    .qr-data-content {
+        padding: 23px 26px;
+    }
+
+    .qr-data-content textarea {
+        min-height: 85px;
+        margin-top: 16px;
+        padding: 14px;
+        border: 1px solid #dce2ed;
+        border-radius: 10px;
+        background: #f8faff;
+        color: #33425b;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    .qr-invoice-card {
+        overflow: hidden;
+        margin-bottom: 24px;
+        border: 1px solid #d8eee1;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 8px 28px rgba(27, 74, 48, .06);
+    }
+
+    .qr-invoice-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 23px 26px;
+        background: #effaf3;
+        border-bottom: 1px solid #d8eee1;
+    }
+
+    .qr-invoice-heading {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .qr-success-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        border-radius: 13px;
+        background: #d6f5e0;
+        color: #16834b;
+        font-size: 23px;
+        font-weight: 800;
+    }
+
+    .qr-invoice-header h2 {
+        margin: 0 0 4px;
+        color: #17653e;
+        font-size: 19px;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    .qr-invoice-header p {
+        margin: 0;
+        color: #62816e;
+        font-size: 12px;
+    }
+
+    .qr-found-badge {
+        padding: 8px 12px;
+        border: 1px solid #bce6ca;
+        border-radius: 30px;
+        background: #fff;
+        color: #16834b;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .5px;
+        white-space: nowrap;
+    }
+
+    .qr-invoice-body {
+        padding: 26px;
+    }
+
+    .qr-detail {
+        height: 100%;
+        min-height: 91px;
+        padding: 17px;
+        border: 1px solid #e9edf3;
+        border-radius: 12px;
+        background: #fbfcfe;
+        overflow-wrap: anywhere;
+    }
+
+    .qr-detail-label {
+        display: block;
+        margin-bottom: 9px;
+        color: #7a879b;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .8px;
+        text-transform: uppercase;
+    }
+
+    .qr-detail-value {
+        color: #26364f;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .qr-detail-total {
+        border-color: #cfeedd;
+        background: #f0fbf4;
+    }
+
+    .qr-detail-total .qr-detail-value {
+        color: #138348;
+        font-size: 23px;
+        letter-spacing: -.5px;
+    }
+
+    .qr-items-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 28px 0 16px;
+    }
+
+    .qr-items-heading h3 {
+        margin: 0;
+        color: #1c2b43;
+        font-size: 17px;
+        font-weight: 750;
+    }
+
+    .qr-items-heading span {
+        color: #778399;
+        font-size: 12px;
+    }
+
+    .qr-items-table {
+        margin-bottom: 0;
+        vertical-align: middle;
+        font-size: 13px;
+    }
+
+    .qr-items-table thead th {
+        padding: 14px 13px;
+        border-bottom: 1px solid #e1e7ef;
+        background: #f5f7fb;
+        color: #65728a;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .7px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .qr-items-table tbody td,
+    .qr-items-table tfoot th {
+        padding: 15px 13px;
+        border-color: #edf0f5;
+        color: #33425a;
+    }
+
+    .qr-items-table tfoot th {
+        background: #f8fafc;
+        color: #17243b;
+    }
+
+    .qr-items-table .qr-product-name {
+        font-weight: 700;
+        color: #253651;
+    }
+
+    .qr-empty-state {
+        padding: 28px 12px !important;
+        color: #7a879b !important;
+        text-align: center;
+    }
+
+    /* Toast notifications: color styling does not depend on Bootstrap theme classes */
+    .qr-toast-container {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(390px, calc(100vw - 36px));
+        pointer-events: none;
+    }
+
+    .qr-toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 17px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        box-shadow: 0 12px 32px rgba(17, 30, 51, .2);
+        color: #fff !important;
+        opacity: 0;
+        transform: translateX(22px);
+        transition: opacity .25s ease, transform .25s ease;
+        pointer-events: auto;
+    }
+
+    .qr-toast.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .qr-toast-success {
+        background: #16834b !important;
+        border-color: #0f7040 !important;
+    }
+
+    .qr-toast-error {
+        background: #c93636 !important;
+        border-color: #ad2727 !important;
+    }
+
+    .qr-toast-warning {
+        background: #a65d08 !important;
+        border-color: #8b4c05 !important;
+    }
+
+    .qr-toast-info {
+        background: #2858b8 !important;
+        border-color: #214a9b !important;
+    }
+
+    .qr-toast-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 29px;
+        height: 29px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,.18);
+        color: #fff !important;
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .qr-toast-copy {
+        flex: 1;
+        min-width: 0;
+        padding-top: 1px;
+    }
+
+    .qr-toast-title {
+        display: block;
+        margin-bottom: 4px;
+        color: #fff !important;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .qr-toast-message {
+        color: #fff !important;
+        font-size: 12px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    .qr-toast-close {
+        padding: 0 0 0 6px;
+        border: 0;
+        background: transparent;
+        color: #fff !important;
+        font-size: 21px;
+        line-height: 1;
+        opacity: .85;
+        cursor: pointer;
+    }
+
+    .qr-toast-close:hover {
+        opacity: 1;
+    }
+
+    .qr-fallback-alert {
+        margin-bottom: 22px;
+        padding: 15px 18px;
+        border: 1px solid #f2b8b8;
+        border-radius: 12px;
+        background: #fff0f0;
+        color: #a52828;
+        font-size: 13px;
+    }
+
+    @media (max-width: 767px) {
+        .qr-dashboard {
+            padding: 18px 12px 32px;
+        }
+
+        .qr-hero {
+            padding: 24px 21px;
+            border-radius: 17px;
+        }
+
+        .qr-hero-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 15px;
+            font-size: 29px;
+        }
+
+        .qr-card-header,
+        .qr-card-body,
+        .qr-data-content,
+        .qr-invoice-body {
+            padding: 19px;
+        }
+
+        .qr-invoice-header {
+            padding: 19px;
+        }
+
+        .qr-toast-container {
+            top: 10px;
+            right: 10px;
+            width: calc(100vw - 20px);
+        }
+    }
+</style>
+
+<!-- Toast Notifications -->
+<div class="qr-toast-container" aria-live="polite" aria-atomic="false">
+    {% for message in messages %}
+        <div class="qr-toast
+            {% if 'error' in message.tags %}qr-toast-error
+            {% elif 'success' in message.tags %}qr-toast-success
+            {% elif 'warning' in message.tags %}qr-toast-warning
+            {% else %}qr-toast-info{% endif %}"
+            role="status">
+
+            <div class="qr-toast-icon">
+                {% if 'error' in message.tags %}×
+                {% elif 'success' in message.tags %}✓
+                {% elif 'warning' in message.tags %}! 
+                {% else %}i{% endif %}
+            </div>
+
+            <div class="qr-toast-copy">
+                <span class="qr-toast-title">
+                    {% if 'error' in message.tags %}Scan Failed
+                    {% elif 'success' in message.tags %}Success
+                    {% elif 'warning' in message.tags %}Warning
+                    {% else %}Notification{% endif %}
+                </span>
+                <div class="qr-toast-message">{{ message }}</div>
+            </div>
+
+            <button type="button" class="qr-toast-close"
+                    aria-label="Dismiss notification">&times;</button>
         </div>
-    {% endif %}
+    {% endfor %}
+</div>
 
-    {% if decoded_data %}
-        <div class="alert alert-success" role="status">
-            <h5>QR Code Successfully Decoded</h5>
-            <p class="mb-2">Decoded data:</p>
-            <textarea
-                class="form-control"
-                rows="4"
-                readonly
-            >{{ decoded_data }}</textarea>
+<div class="qr-dashboard">
+
+    <!-- Page Header -->
+    <section class="qr-hero">
+        <div class="qr-hero-content d-flex align-items-center justify-content-between gap-4">
+            <div>
+                <div class="qr-eyebrow">
+                    <span>✦</span> Advance Billing System
+                </div>
+                <h1>QR Invoice Decoder</h1>
+                <p>
+                    Decode an invoice QR code and retrieve its billing
+                    information, customer details, and product breakdown.
+                </p>
+            </div>
+            <div class="qr-hero-icon d-none d-sm-flex" aria-hidden="true">
+                ▦
+            </div>
         </div>
-    {% endif %}
+    </section>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-            <form
-                method="post"
-                enctype="multipart/form-data"
-            >
+    <!-- Upload Card -->
+    <section class="qr-card">
+        <div class="qr-card-header">
+            <div class="qr-step-icon">↥</div>
+            <div>
+                <h2 class="qr-section-heading">Upload QR Image</h2>
+                <p class="qr-section-description">
+                    Select a clear image containing the invoice QR code.
+                </p>
+            </div>
+        </div>
+
+        <div class="qr-card-body">
+            {% if error and not messages %}
+                <div class="qr-fallback-alert" role="alert">
+                    <strong>Unable to decode:</strong> {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 
-                <div class="mb-3">
+                <div class="qr-drop-area">
+                    <div class="qr-upload-symbol" aria-hidden="true">▧</div>
+
                     <label for="qr_image" class="form-label">
-                        Select QR Code Image
+                        Choose QR code image
                     </label>
 
                     <input
@@ -49,29 +647,193 @@ QR Code Decoder | Advance Billing System
                         name="qr_image"
                         id="qr_image"
                         class="form-control"
-                        accept="image/*"
-                        required
-                    >
+                        accept="image/png,image/jpeg,image/webp"
+                        required>
 
-                    <small class="text-muted">
-                        Supported image formats depend on OpenCV.
-                        Maximum upload size: 5 MB.
+                    <small class="qr-hint">
+                        Supported formats: PNG, JPG, JPEG, WEBP.
+                        Maximum file size: 5 MB.
                     </small>
                 </div>
 
-                <button type="submit" class="btn btn-primary">
-                    Decode QR Code
-                </button>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <button type="submit" class="btn qr-btn-primary">
+                        Decode QR Code &nbsp; →
+                    </button>
 
-                <a
-                    href="{% url 'qr_decoder' %}"
-                    class="btn btn-outline-secondary"
-                >
-                    Reset
-                </a>
+                    <a href="{% url 'qr_decoder' %}"
+                       class="btn qr-btn-secondary">
+                        Reset
+                    </a>
+                </div>
             </form>
         </div>
-    </div>
+    </section>
+
+    <!-- Decoded Data -->
+    {% if decoded_data %}
+        <section class="qr-card">
+            <div class="qr-card-header">
+                <div class="qr-step-icon">⌘</div>
+                <div>
+                    <h2 class="qr-section-heading">Decoded QR Data</h2>
+                    <p class="qr-section-description">
+                        The text extracted from the uploaded QR image.
+                    </p>
+                </div>
+            </div>
+
+            <div class="qr-data-content">
+                <textarea class="form-control" rows="3" readonly
+                          aria-label="Decoded QR data">{{ decoded_data }}</textarea>
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- Matched Invoice -->
+    {% if invoice %}
+        <section class="qr-invoice-card">
+            <div class="qr-invoice-header">
+                <div class="qr-invoice-heading">
+                    <div class="qr-success-icon">✓</div>
+                    <div>
+                        <h2>Invoice Found</h2>
+                        <p>Invoice {{ invoice.invoice_number }} was matched successfully.</p>
+                    </div>
+                </div>
+                <span class="qr-found-badge">✓ VERIFIED MATCH</span>
+            </div>
+
+            <div class="qr-invoice-body">
+
+                <!-- Invoice Details -->
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="qr-detail">
+                            <span class="qr-detail-label">Invoice Number</span>
+                            <div class="qr-detail-value">{{ invoice.invoice_number }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="qr-detail">
+                            <span class="qr-detail-label">Invoice Date</span>
+                            <div class="qr-detail-value">
+                                {{ invoice.invoice_date|date:"d M Y" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="qr-detail">
+                            <span class="qr-detail-label">Customer</span>
+                            <div class="qr-detail-value">{{ invoice.customer }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="qr-detail">
+                            <span class="qr-detail-label">Distributor</span>
+                            <div class="qr-detail-value">
+                                {{ invoice.distributor|default:"—" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="qr-detail">
+                            <span class="qr-detail-label">Invoice Status</span>
+                            <div class="qr-detail-value" style="color:#16834b;">
+                                Invoice Matched
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="qr-detail qr-detail-total">
+                            <span class="qr-detail-label">Total Amount</span>
+                            <div class="qr-detail-value">
+                                ₹{{ invoice.total_amount|floatformat:2 }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="qr-items-heading">
+                    <h3>Invoice Items</h3>
+                    <span>Product and price breakdown</span>
+                </div>
+
+                <div class="table-responsive" style="border:1px solid #e7ebf2;border-radius:12px;">
+                    <table class="table table-hover qr-items-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>GST %</th>
+                                <th>Discount %</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in invoice.items.all %}
+                                <tr>
+                                    <td class="qr-product-name">{{ item.product.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>₹{{ item.price|floatformat:2 }}</td>
+                                    <td>{{ item.gst_rate }}%</td>
+                                    <td>{{ item.discount }}%</td>
+                                    <td class="fw-bold">₹{{ item.total|floatformat:2 }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="qr-empty-state">
+                                        No items are linked to this invoice.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+
+                        <tfoot>
+                            <tr>
+                                <th colspan="5" class="text-end">Invoice Total</th>
+                                <th>₹{{ invoice.total_amount|floatformat:2 }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+    {% endif %}
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".qr-toast").forEach(function (toast) {
+        requestAnimationFrame(function () {
+            toast.classList.add("show");
+        });
+
+        const closeButton = toast.querySelector(".qr-toast-close");
+
+        function dismissToast() {
+            toast.classList.remove("show");
+            window.setTimeout(function () {
+                toast.remove();
+            }, 300);
+        }
+
+        if (closeButton) {
+            closeButton.addEventListener("click", dismissToast);
+        }
+
+        window.setTimeout(dismissToast, 5000);
+    });
+});
+</script>
 {% endblock %}

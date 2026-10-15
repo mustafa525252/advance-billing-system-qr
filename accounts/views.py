@@ -30,6 +30,7 @@ from django.db.models.functions import TruncDate
 from django.template.loader import get_template
 import cv2
 import numpy as np
+from django.db.models import ProtectedError
 # Create your views here.
 
 
@@ -2798,55 +2799,115 @@ def view_products(request):
     })
     
 
+
 @login_required(login_url='admin_login')
 def qr_decoder(request):
     decoded_data = None
+    invoice = None
     error = None
 
     if request.method == 'POST':
         uploaded_file = request.FILES.get('qr_image')
 
-        if not uploaded_file:
+        if not uploaded_file or uploaded_file.size == 0:
             error = 'Please select a QR code image.'
+
         elif uploaded_file.size > 5 * 1024 * 1024:
             error = 'Image size must be 5 MB or less.'
+
         else:
             try:
-                # Read the uploaded image without saving it to disk
                 image_bytes = uploaded_file.read()
-
                 image_array = np.frombuffer(
                     image_bytes,
                     dtype=np.uint8
                 )
-
                 image = cv2.imdecode(
                     image_array,
                     cv2.IMREAD_COLOR
                 )
 
                 if image is None:
-                    error = 'The uploaded file is not a valid image.'
+                    error = (
+                        'The uploaded file is not a valid image.'
+                    )
                 else:
                     detector = cv2.QRCodeDetector()
-                    decoded_data, points, _ = detector.detectAndDecode(
-                        image
+                    decoded_data, points, _ = (
+                        detector.detectAndDecode(image)
                     )
 
-                    if not decoded_data:
+                    if not decoded_data or not decoded_data.strip():
+                        decoded_data = None
                         error = (
                             'No readable QR code was found. '
                             'Try a clearer image.'
                         )
+                    else:
+                        # Accept either a plain invoice number
+                        # or JSON containing "invoice_number".
+                        invoice_number = decoded_data.strip()
+
+                        try:
+                            qr_payload = json.loads(decoded_data)
+                            if isinstance(qr_payload, dict):
+                                invoice_number = str(
+                                    qr_payload.get(
+                                        'invoice_number', ''
+                                    )
+                                ).strip()
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+
+                        if not invoice_number:
+                            error = (
+                                'The QR code does not contain '
+                                'an invoice number.'
+                            )
+                        else:
+                            invoice = (
+                                Invoice.objects
+                                .select_related(
+                                    'customer', 'distributor'
+                                )
+                                .prefetch_related(
+                                    'items__product'
+                                )
+                                .filter(
+                                    invoice_number=invoice_number
+                                )
+                                .first()
+                            )
+
+                            if invoice is None:
+                                error = (
+                                    'No invoice was found for '
+                                    'the decoded QR data.'
+                                )
 
             except (cv2.error, ValueError, TypeError):
-                error = 'Unable to read this image. Please try another.'
+                decoded_data = None
+                invoice = None
+                error = (
+                    'Unable to read this image. '
+                    'Please try another.'
+                )
+
+        if error:
+            messages.error(request, error)
+        elif invoice:
+            messages.success(
+                request,
+                f'QR code decoded successfully. '
+                f'Invoice {invoice.invoice_number} found.'
+            )
 
     return render(
         request,
         'accounts/qr_decoder.html',
         {
             'decoded_data': decoded_data,
+            'invoice': invoice,
             'error': error,
         }
     )
