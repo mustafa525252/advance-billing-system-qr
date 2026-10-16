@@ -38,11 +38,16 @@ def admin_login(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect('admin_dashboard')
+
         logout(request)
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
+
+        if not username or not password:
+            messages.error(request, 'Enter your username and password.')
+            return render(request, 'accounts/admin_login.html')
 
         user = authenticate(
             request,
@@ -50,20 +55,15 @@ def admin_login(request):
             password=password
         )
 
-        if user is not None:
-            if user.is_staff:
-                login(request, user)
-                return redirect('admin_dashboard')
+        if user is None:
+            messages.error(request, 'Invalid username or password.')
 
-            messages.error(
-                request,
-                'This account does not have Admin access.'
-            )
+        elif not user.is_staff or not user.is_active:
+            messages.error(request, 'This account does not have Admin access.')
+
         else:
-            messages.error(
-                request,
-                'Invalid username or password.'
-            )
+            login(request, user)
+            return redirect('admin_dashboard')
 
     return render(request, 'accounts/admin_login.html')
 

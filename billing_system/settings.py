@@ -143,3 +143,12 @@ EMAIL_HOST_USER = 'mustafa.01.gururo@gmail.com'
 EMAIL_HOST_PASSWORD = 'umcr nfrn vlkc bhhj'
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+# Session-based authentication
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Session expires after 30 minutes of inactivity
+SESSION_COOKIE_AGE = 1800
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
