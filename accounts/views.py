@@ -1759,16 +1759,21 @@ def create_invoice(request):
     )
     
     
+
 @login_required
 def invoice_list(request):
-
     invoices = (
-    Invoice.objects
-    .filter(distributor=request.user)
-    .select_related('customer')
-    .prefetch_related('items__product')
-    .order_by('-created_at')
-)
+        Invoice.objects
+        .select_related('customer', 'distributor')
+        .prefetch_related('items__product')
+    )
+
+    # Admins can see all invoices.
+    # Distributors can see only their own invoices.
+    if not request.user.is_staff:
+        invoices = invoices.filter(distributor=request.user)
+
+    invoices = invoices.order_by('-created_at')
 
     total_billing = invoices.aggregate(
         total=Sum('total_amount')
@@ -1777,9 +1782,7 @@ def invoice_list(request):
     latest_invoice = invoices.first()
 
     paginator = Paginator(invoices, 5)
-
     page_number = request.GET.get('page')
-
     page_obj = paginator.get_page(page_number)
 
     context = {
@@ -1794,18 +1797,30 @@ def invoice_list(request):
         'accounts/invoice_list.html',
         context
     )
+
     
     
 @login_required
 def invoice_detail(request, invoice_id):
-
-    invoice = get_object_or_404(
+    invoices = (
         Invoice.objects
-        .select_related('customer')
-        .prefetch_related('items__product'),
-        id=invoice_id,
-        distributor=request.user
+        .select_related('customer', 'distributor')
+        .prefetch_related('items__product')
     )
+
+    # Admins can view every invoice.
+    # Distributors can view only their own invoices.
+    if request.user.is_staff:
+        invoice = get_object_or_404(
+            invoices,
+            id=invoice_id
+        )
+    else:
+        invoice = get_object_or_404(
+            invoices,
+            id=invoice_id,
+            distributor=request.user
+        )
 
     qr_code = generate_invoice_qr(invoice)
 
@@ -1844,106 +1859,71 @@ def print_invoice(request, invoice_id):
         context
     )
     
+
 @login_required
 def download_invoice_pdf(request, invoice_id):
-    invoice = get_object_or_404(
+    invoices = (
         Invoice.objects
-        .select_related('customer')
-        .prefetch_related('items__product'),
-        id=invoice_id,
-        distributor=request.user
+        .select_related('customer', 'distributor')
+        .prefetch_related('items__product')
     )
 
-    response = HttpResponse(
-        content_type='application/pdf'
-    )
+    # Admins can download every invoice.
+    # Distributors can download only their own invoices.
+    if request.user.is_staff:
+        invoice = get_object_or_404(
+            invoices,
+            id=invoice_id
+        )
+    else:
+        invoice = get_object_or_404(
+            invoices,
+            id=invoice_id,
+            distributor=request.user
+        )
+
+    response = HttpResponse(content_type='application/pdf')
 
     response['Content-Disposition'] = (
         f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
     )
 
-    pdf = canvas.Canvas(
-        response,
-        pagesize=A4
-    )
-
+    pdf = canvas.Canvas(response, pagesize=A4)
     width, height = A4
 
-    # -------------------------
     # Invoice Header
-    # -------------------------
     pdf.setFont('Helvetica-Bold', 18)
-    pdf.drawString(
-        50,
-        height - 50,
-        'INVOICE'
-    )
+    pdf.drawString(50, height - 50, 'INVOICE')
 
     pdf.setFont('Helvetica', 10)
-
     pdf.drawString(
-        50,
-        height - 75,
+        50, height - 75,
         f'Invoice No: {invoice.invoice_number}'
     )
-
     pdf.drawString(
-        50,
-        height - 90,
+        50, height - 90,
         f'Date: {invoice.created_at.strftime("%d-%m-%Y")}'
     )
 
-    # -------------------------
     # Customer Details
-    # -------------------------
     y = height - 130
-
     pdf.setFont('Helvetica-Bold', 12)
-    pdf.drawString(
-        50,
-        y,
-        'Customer Details'
-    )
+    pdf.drawString(50, y, 'Customer Details')
 
     y -= 20
-
     pdf.setFont('Helvetica', 10)
 
-    pdf.drawString(
-        50,
-        y,
-        f'Name: {invoice.customer.name}'
-    )
+    for label, value in [
+        ('Name', invoice.customer.name),
+        ('Email', invoice.customer.email),
+        ('Phone', invoice.customer.phone),
+        ('Address', invoice.customer.address),
+    ]:
+        pdf.drawString(50, y, f'{label}: {value}')
+        y -= 15
 
-    y -= 15
-
-    pdf.drawString(
-        50,
-        y,
-        f'Email: {invoice.customer.email}'
-    )
-
-    y -= 15
-
-    pdf.drawString(
-        50,
-        y,
-        f'Phone: {invoice.customer.phone}'
-    )
-
-    y -= 15
-
-    pdf.drawString(
-        50,
-        y,
-        f'Address: {invoice.customer.address}'
-    )
-
-    # -------------------------
-    # Product Table Header
-    # -------------------------
-    y -= 40
-
+    # Product Table
+    y -= 25
     pdf.setFont('Helvetica-Bold', 10)
 
     pdf.drawString(50, y, 'Product')
@@ -1954,105 +1934,51 @@ def download_invoice_pdf(request, invoice_id):
     pdf.drawString(510, y, 'Total')
 
     y -= 15
-
-    pdf.line(
-        50,
-        y,
-        550,
-        y
-    )
-
+    pdf.line(50, y, 550, y)
     y -= 20
 
-    # -------------------------
-    # Invoice Items
-    # -------------------------
     pdf.setFont('Helvetica', 9)
 
     for item in invoice.items.all():
-
-        pdf.drawString(
-            50,
-            y,
-            str(item.product.name)[:30]
-        )
-
-        pdf.drawString(
-            250,
-            y,
-            str(item.quantity)
-        )
-
-        pdf.drawString(
-            300,
-            y,
-            f'{item.price:.2f}'
-        )
-
-        pdf.drawString(
-            380,
-            y,
-            f'{item.gst_rate:.2f}%'
-        )
-
-        pdf.drawString(
-            440,
-            y,
-            f'{item.discount:.2f}%'
-        )
-
-        pdf.drawString(
-            510,
-            y,
-            f'{item.total:.2f}'
-        )
-
-        y -= 20
-
-        # Start a new page if necessary
+        # Start a new page before writing beyond the page.
         if y < 80:
             pdf.showPage()
             y = height - 50
+            pdf.setFont('Helvetica-Bold', 10)
+            pdf.drawString(50, y, 'Product')
+            pdf.drawString(250, y, 'Qty')
+            pdf.drawString(300, y, 'Price')
+            pdf.drawString(380, y, 'GST')
+            pdf.drawString(440, y, 'Discount')
+            pdf.drawString(510, y, 'Total')
+            y -= 25
             pdf.setFont('Helvetica', 9)
 
-    # -------------------------
+        pdf.drawString(50, y, str(item.product.name)[:30])
+        pdf.drawString(250, y, str(item.quantity))
+        pdf.drawString(300, y, f'{item.price:.2f}')
+        pdf.drawString(380, y, f'{item.gst_rate:.2f}%')
+        pdf.drawString(440, y, f'{item.discount:.2f}%')
+        pdf.drawString(510, y, f'{item.total:.2f}')
+
+        y -= 20
+
     # Grand Total
-    # -------------------------
-    y -= 15
+    if y < 100:
+        pdf.showPage()
+        y = height - 60
 
-    pdf.line(
-        400,
-        y,
-        550,
-        y
-    )
-
+    y -= 5
+    pdf.line(400, y, 550, y)
     y -= 25
 
-    pdf.setFont(
-        'Helvetica-Bold',
-        12
-    )
+    pdf.setFont('Helvetica-Bold', 12)
+    pdf.drawString(400, y, 'Grand Total:')
+    pdf.drawRightString(550, y, f'{invoice.total_amount:.2f}')
 
-    pdf.drawString(
-        400,
-        y,
-        'Grand Total:'
-    )
-
-    pdf.drawString(
-        510,
-        y,
-        f'{invoice.total_amount:.2f}'
-    )
-
-    # -------------------------
-    # Finish PDF
-    # -------------------------
-    pdf.showPage()
     pdf.save()
-
     return response
+
 
 @csrf_exempt
 def admin_register_api(request):
@@ -2800,6 +2726,7 @@ def view_products(request):
     
 
 
+
 @login_required(login_url='admin_login')
 def qr_decoder(request):
     decoded_data = None
@@ -2828,9 +2755,7 @@ def qr_decoder(request):
                 )
 
                 if image is None:
-                    error = (
-                        'The uploaded file is not a valid image.'
-                    )
+                    error = 'The uploaded file is not a valid image.'
                 else:
                     detector = cv2.QRCodeDetector()
                     decoded_data, points, _ = (
@@ -2844,8 +2769,6 @@ def qr_decoder(request):
                             'Try a clearer image.'
                         )
                     else:
-                        # Accept either a plain invoice number
-                        # or JSON containing "invoice_number".
                         invoice_number = decoded_data.strip()
 
                         try:
@@ -2865,24 +2788,29 @@ def qr_decoder(request):
                                 'an invoice number.'
                             )
                         else:
-                            invoice = (
+                            invoices = (
                                 Invoice.objects
                                 .select_related(
                                     'customer', 'distributor'
                                 )
-                                .prefetch_related(
-                                    'items__product'
-                                )
-                                .filter(
-                                    invoice_number=invoice_number
-                                )
-                                .first()
+                                .prefetch_related('items__product')
                             )
+
+                            # Staff admins can find any invoice.
+                            # Other users can find only their own.
+                            if not request.user.is_staff:
+                                invoices = invoices.filter(
+                                    distributor=request.user
+                                )
+
+                            invoice = invoices.filter(
+                                invoice_number=invoice_number
+                            ).first()
 
                             if invoice is None:
                                 error = (
-                                    'No invoice was found for '
-                                    'the decoded QR data.'
+                                    'No accessible invoice was found '
+                                    'for the decoded QR data.'
                                 )
 
             except (cv2.error, ValueError, TypeError):

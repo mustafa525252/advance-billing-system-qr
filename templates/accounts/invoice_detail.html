@@ -473,6 +473,13 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
 
             </div>
 
+            <div class="info-row">
+                <span class="info-label">Distributor</span>
+                <span class="info-value">
+                    {{ invoice.distributor|default:"—" }}
+                </span>
+            </div>
+
 
             <div class="info-row">
 
@@ -659,7 +666,7 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
 
 
                         <td class="price">
-                            ₹{{ item.price }}
+                            ₹{{ item.price|floatformat:2 }}
                         </td>
 
 
@@ -679,7 +686,7 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
 
 
                         <td class="item-total">
-                            ₹{{ item.total }}
+                            ₹{{ item.total|floatformat:2 }}
                         </td>
 
                     </tr>
@@ -734,7 +741,7 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
                 </span>
 
                 <span>
-                    ₹{{ invoice.total_amount }}
+                    ₹{{ invoice.total_amount|floatformat:2 }}
                 </span>
 
             </div>
