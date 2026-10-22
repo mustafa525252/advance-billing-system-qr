@@ -286,6 +286,10 @@
                 <a href="{% url 'view_products' %}" class="{% if request.resolver_match.url_name == 'view_products' %}active{% endif %}">
                     Products
                 </a>
+                <a href="{% url 'admin_invoice_list' %}">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>All Invoices</span>
+                </a>
 
                 <a
                     href="{% url 'admin_reports' %}"

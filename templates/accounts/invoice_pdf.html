@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 25px 30px;
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10px;
+            color: #263238;
+        }
+
+        .header {
+            background-color: #123047;
+            color: white;
+            padding: 20px;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-size: 10px;
+            color: #d7e4ec;
+        }
+
+        .invoice-label {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d4ad63;
+            text-align: right;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details {
+            margin-top: 22px;
+            margin-bottom: 18px;
+        }
+
+        .details td {
+            width: 50%;
+            vertical-align: top;
+            padding: 8px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #123047;
+            padding-bottom: 8px;
+        }
+
+        .items th {
+            background-color: #123047;
+            color: white;
+            padding: 9px 5px;
+            text-align: left;
+        }
+
+        .items td {
+            padding: 9px 5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .number {
+            text-align: right;
+        }
+
+        .summary {
+            width: 48%;
+            margin-left: 52%;
+            margin-top: 20px;
+        }
+
+        .summary td {
+            padding: 7px;
+        }
+
+        .grand-total {
+            background-color: #123047;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .qr {
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px solid #dbe3e8;
+        }
+
+        .qr img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .footer {
+            margin-top: 25px;
+            text-align: center;
+            color: #64748b;
+            font-size: 9px;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="header">
+        <tr>
+            <td>
+                <div class="brand">ADVANCE BILLING</div>
+                <div class="subtitle">Professional Invoice</div>
+            </td>
+            <td class="invoice-label">INVOICE</td>
+        </tr>
+    </table>
+
+    <table class="details">
+        <tr>
+            <td>
+                <div class="section-title">BILL TO</div>
+                <strong>{{ invoice.customer.name }}</strong><br />
+                {{ invoice.customer.address|default:"—" }}<br />
+                Phone: {{ invoice.customer.phone|default:"—" }}<br />
+                Email: {{ invoice.customer.email|default:"—" }}
+            </td>
+            <td>
+                <div class="section-title">INVOICE DETAILS</div>
+                <strong>Invoice No:</strong>
+                {{ invoice.invoice_number }}<br />
+                <strong>Invoice Date:</strong>
+                {{ invoice.invoice_date|date:"d M Y" }}<br />
+                <strong>Created:</strong>
+                {{ invoice.created_at|date:"d M Y, h:i A" }}<br />
+                <strong>Items:</strong> {{ invoice.items.count }}
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">ITEMIZED DETAILS</div>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th class="number">Qty</th>
+                <th class="number">Price (₹)</th>
+                <th class="number">GST</th>
+                <th class="number">Discount</th>
+                <th class="number">Total (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td class="number">{{ item.quantity }}</td>
+                <td class="number">{{ item.price|floatformat:2 }}</td>
+                <td class="number">{{ item.gst_rate }}%</td>
+                <td class="number">{{ item.discount }}%</td>
+                <td class="number">{{ item.total|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No invoice items found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="summary">
+        <tr class="grand-total">
+            <td>GRAND TOTAL</td>
+            <td class="number">
+                ₹ {{ invoice.total_amount|floatformat:2 }}
+            </td>
+        </tr>
+    </table>
+
+    {% if qr_code %}
+    <div class="qr">
+        <strong>Invoice Verification QR</strong><br />
+        <img src="data:image/png;base64,{{ qr_code }}" alt="Invoice QR" />
+        <br />
+        <span>Invoice: {{ invoice.invoice_number }}</span>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        Thank you for your business.<br />
+        This invoice was generated electronically.
+    </div>
+
+</body>
+</html>

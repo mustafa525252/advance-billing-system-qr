@@ -31,6 +31,7 @@ from django.template.loader import get_template
 import cv2
 import numpy as np
 from django.db.models import ProtectedError
+
 # Create your views here.
 
 
@@ -1860,6 +1861,126 @@ def print_invoice(request, invoice_id):
     )
     
 
+# @login_required
+# def download_invoice_pdf(request, invoice_id):
+#     invoices = (
+#         Invoice.objects
+#         .select_related('customer', 'distributor')
+#         .prefetch_related('items__product')
+#     )
+
+#     # Admins can download every invoice.
+#     # Distributors can download only their own invoicess.
+#     if request.user.is_staff:
+#         invoice = get_object_or_404(
+#             invoices,
+#             id=invoice_id
+#         )
+#     else:
+#         invoice = get_object_or_404(
+#             invoices,
+#             id=invoice_id,
+#             distributor=request.user
+#         )
+
+#     response = HttpResponse(content_type='application/pdf')
+
+#     response['Content-Disposition'] = (
+#         f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+#     )
+
+#     pdf = canvas.Canvas(response, pagesize=A4)
+#     width, height = A4
+
+#     # Invoice Header
+#     pdf.setFont('Helvetica-Bold', 18)
+#     pdf.drawString(50, height - 50, 'INVOICE')
+
+#     pdf.setFont('Helvetica', 10)
+#     pdf.drawString(
+#         50, height - 75,
+#         f'Invoice No: {invoice.invoice_number}'
+#     )
+#     pdf.drawString(
+#         50, height - 90,
+#         f'Date: {invoice.created_at.strftime("%d-%m-%Y")}'
+#     )
+
+#     # Customer Details
+#     y = height - 130
+#     pdf.setFont('Helvetica-Bold', 12)
+#     pdf.drawString(50, y, 'Customer Details')
+
+#     y -= 20
+#     pdf.setFont('Helvetica', 10)
+
+#     for label, value in [
+#         ('Name', invoice.customer.name),
+#         ('Email', invoice.customer.email),
+#         ('Phone', invoice.customer.phone),
+#         ('Address', invoice.customer.address),
+#     ]:
+#         pdf.drawString(50, y, f'{label}: {value}')
+#         y -= 15
+
+#     # Product Table
+#     y -= 25
+#     pdf.setFont('Helvetica-Bold', 10)
+
+#     pdf.drawString(50, y, 'Product')
+#     pdf.drawString(250, y, 'Qty')
+#     pdf.drawString(300, y, 'Price')
+#     pdf.drawString(380, y, 'GST')
+#     pdf.drawString(440, y, 'Discount')
+#     pdf.drawString(510, y, 'Total')
+
+#     y -= 15
+#     pdf.line(50, y, 550, y)
+#     y -= 20
+
+#     pdf.setFont('Helvetica', 9)
+
+#     for item in invoice.items.all():
+#         # Start a new page before writing beyond the page.
+#         if y < 80:
+#             pdf.showPage()
+#             y = height - 50
+#             pdf.setFont('Helvetica-Bold', 10)
+#             pdf.drawString(50, y, 'Product')
+#             pdf.drawString(250, y, 'Qty')
+#             pdf.drawString(300, y, 'Price')
+#             pdf.drawString(380, y, 'GST')
+#             pdf.drawString(440, y, 'Discount')
+#             pdf.drawString(510, y, 'Total')
+#             y -= 25
+#             pdf.setFont('Helvetica', 9)
+
+#         pdf.drawString(50, y, str(item.product.name)[:30])
+#         pdf.drawString(250, y, str(item.quantity))
+#         pdf.drawString(300, y, f'{item.price:.2f}')
+#         pdf.drawString(380, y, f'{item.gst_rate:.2f}%')
+#         pdf.drawString(440, y, f'{item.discount:.2f}%')
+#         pdf.drawString(510, y, f'{item.total:.2f}')
+
+#         y -= 20
+
+#     # Grand Total
+#     if y < 100:
+#         pdf.showPage()
+#         y = height - 60
+
+#     y -= 5
+#     pdf.line(400, y, 550, y)
+#     y -= 25
+
+#     pdf.setFont('Helvetica-Bold', 12)
+#     pdf.drawString(400, y, 'Grand Total:')
+#     pdf.drawRightString(550, y, f'{invoice.total_amount:.2f}')
+
+#     pdf.save()
+#     return response
+
+
 @login_required
 def download_invoice_pdf(request, invoice_id):
     invoices = (
@@ -1868,8 +1989,6 @@ def download_invoice_pdf(request, invoice_id):
         .prefetch_related('items__product')
     )
 
-    # Admins can download every invoice.
-    # Distributors can download only their own invoices.
     if request.user.is_staff:
         invoice = get_object_or_404(
             invoices,
@@ -1882,102 +2001,34 @@ def download_invoice_pdf(request, invoice_id):
             distributor=request.user
         )
 
-    response = HttpResponse(content_type='application/pdf')
+    qr_code = generate_invoice_qr(invoice)
 
+    template = get_template('accounts/invoice_pdf.html')
+    html = template.render({
+        'invoice': invoice,
+        'qr_code': qr_code,
+    }, request)
+
+    response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = (
         f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
     )
 
-    pdf = canvas.Canvas(response, pagesize=A4)
-    width, height = A4
-
-    # Invoice Header
-    pdf.setFont('Helvetica-Bold', 18)
-    pdf.drawString(50, height - 50, 'INVOICE')
-
-    pdf.setFont('Helvetica', 10)
-    pdf.drawString(
-        50, height - 75,
-        f'Invoice No: {invoice.invoice_number}'
-    )
-    pdf.drawString(
-        50, height - 90,
-        f'Date: {invoice.created_at.strftime("%d-%m-%Y")}'
+    result = pisa.CreatePDF(
+        html,
+        dest=response,
+        encoding='utf-8',
     )
 
-    # Customer Details
-    y = height - 130
-    pdf.setFont('Helvetica-Bold', 12)
-    pdf.drawString(50, y, 'Customer Details')
+    if result.err:
+        return HttpResponse(
+            'Unable to generate the invoice PDF. '
+            'Please check the PDF template and server logs.',
+            status=500,
+        )
 
-    y -= 20
-    pdf.setFont('Helvetica', 10)
-
-    for label, value in [
-        ('Name', invoice.customer.name),
-        ('Email', invoice.customer.email),
-        ('Phone', invoice.customer.phone),
-        ('Address', invoice.customer.address),
-    ]:
-        pdf.drawString(50, y, f'{label}: {value}')
-        y -= 15
-
-    # Product Table
-    y -= 25
-    pdf.setFont('Helvetica-Bold', 10)
-
-    pdf.drawString(50, y, 'Product')
-    pdf.drawString(250, y, 'Qty')
-    pdf.drawString(300, y, 'Price')
-    pdf.drawString(380, y, 'GST')
-    pdf.drawString(440, y, 'Discount')
-    pdf.drawString(510, y, 'Total')
-
-    y -= 15
-    pdf.line(50, y, 550, y)
-    y -= 20
-
-    pdf.setFont('Helvetica', 9)
-
-    for item in invoice.items.all():
-        # Start a new page before writing beyond the page.
-        if y < 80:
-            pdf.showPage()
-            y = height - 50
-            pdf.setFont('Helvetica-Bold', 10)
-            pdf.drawString(50, y, 'Product')
-            pdf.drawString(250, y, 'Qty')
-            pdf.drawString(300, y, 'Price')
-            pdf.drawString(380, y, 'GST')
-            pdf.drawString(440, y, 'Discount')
-            pdf.drawString(510, y, 'Total')
-            y -= 25
-            pdf.setFont('Helvetica', 9)
-
-        pdf.drawString(50, y, str(item.product.name)[:30])
-        pdf.drawString(250, y, str(item.quantity))
-        pdf.drawString(300, y, f'{item.price:.2f}')
-        pdf.drawString(380, y, f'{item.gst_rate:.2f}%')
-        pdf.drawString(440, y, f'{item.discount:.2f}%')
-        pdf.drawString(510, y, f'{item.total:.2f}')
-
-        y -= 20
-
-    # Grand Total
-    if y < 100:
-        pdf.showPage()
-        y = height - 60
-
-    y -= 5
-    pdf.line(400, y, 550, y)
-    y -= 25
-
-    pdf.setFont('Helvetica-Bold', 12)
-    pdf.drawString(400, y, 'Grand Total:')
-    pdf.drawRightString(550, y, f'{invoice.total_amount:.2f}')
-
-    pdf.save()
     return response
+
 
 
 @csrf_exempt
@@ -2838,4 +2889,71 @@ def qr_decoder(request):
             'invoice': invoice,
             'error': error,
         }
+    )
+
+
+
+
+@login_required(login_url='admin_login')
+def admin_invoice_list(request):
+    if not request.user.is_staff:
+        messages.error(request, 'Admin access required.')
+        return redirect('distributor_login')
+
+    search = request.GET.get('q', '').strip()
+
+    invoices = (
+        Invoice.objects
+        .select_related('customer', 'distributor')
+        .order_by('-created_at')
+    )
+
+    if search:
+        invoices = invoices.filter(
+            Q(invoice_number__icontains=search)
+            | Q(customer__name__icontains=search)
+            | Q(distributor__username__icontains=search)
+            | Q(distributor__first_name__icontains=search)
+            | Q(distributor__last_name__icontains=search)
+        )
+
+    paginator = Paginator(invoices, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(
+        request,
+        'accounts/admin_invoice_list.html',
+        {
+            'page_obj': page_obj,
+            'search': search,
+        }
+    )
+
+
+
+@login_required
+def admin_invoice_detail(request, invoice_id):
+    # Only staff/admin users can access this page.
+    if not request.user.is_staff:
+        messages.error(request, "Admin access required.")
+        return redirect('distributor_login')
+
+    invoice = get_object_or_404(
+        Invoice.objects
+        .select_related('customer', 'distributor')
+        .prefetch_related('items__product'),
+        id=invoice_id
+    )
+
+    qr_code = generate_invoice_qr(invoice)
+
+    context = {
+        'invoice': invoice,
+        'qr_code': qr_code,
+    }
+
+    return render(
+        request,
+        'accounts/admin_invoice_detail.html',
+        context
     )
