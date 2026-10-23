@@ -425,6 +425,7 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
             <a
                 href="{% url 'download_invoice_pdf' invoice.id %}"
                 class="btn btn-primary"
+                id="downloadInvoicePdfBtn"
             >
                 Download Invoice PDF
             </a>
@@ -752,5 +753,104 @@ Invoice {{ invoice.invoice_number }} | Advance Billing System
 
 
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const button = document.getElementById("downloadInvoicePdfBtn");
+
+    if (!button) return;
+
+    function showDownloadMessage(message, type) {
+        let container = document.querySelector(".global-messages");
+
+        if (!container) {
+            container = document.createElement("div");
+            container.className = "global-messages";
+            container.setAttribute("aria-live", "polite");
+
+            const page = document.querySelector(".page");
+            if (page) {
+                page.prepend(container);
+            } else {
+                document.body.prepend(container);
+            }
+        }
+
+        const alert = document.createElement("div");
+        alert.className = "global-message " + type;
+        alert.textContent = message;
+
+        const close = document.createElement("button");
+        close.type = "button";
+        close.className = "message-close";
+        close.setAttribute("aria-label", "Dismiss message");
+        close.textContent = "×";
+        close.addEventListener("click", function () {
+            alert.remove();
+        });
+
+        alert.appendChild(close);
+        container.appendChild(alert);
+    }
+
+    button.addEventListener("click", async function (event) {
+        event.preventDefault();
+
+        if (button.dataset.downloading === "true") return;
+
+        button.dataset.downloading = "true";
+        const originalText = button.textContent.trim();
+        button.textContent = "Preparing PDF...";
+        button.style.pointerEvents = "none";
+
+        let objectUrl = null;
+
+        try {
+            const response = await fetch(button.href, {
+                credentials: "same-origin"
+            });
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+            if (!response.ok ||
+                !contentType.includes("application/pdf")) {
+                throw new Error(
+                    "The PDF could not be generated. Please try again."
+                );
+            }
+
+            const blob = await response.blob();
+            objectUrl = URL.createObjectURL(blob);
+
+            const downloadLink = document.createElement("a");
+            downloadLink.href = objectUrl;
+            downloadLink.download =
+                "invoice_{{ invoice.invoice_number|escapejs }}.pdf";
+
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.remove();
+
+            showDownloadMessage(
+                "Invoice PDF downloaded successfully.",
+                "success"
+            );
+        } catch (error) {
+            showDownloadMessage(
+                error.message || "PDF download failed. Please try again.",
+                "error"
+            );
+        } finally {
+            if (objectUrl) {
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+            }
+
+            button.textContent = originalText;
+            button.style.pointerEvents = "";
+            delete button.dataset.downloading;
+        }
+    });
+});
+</script>
 
 {% endblock %}
