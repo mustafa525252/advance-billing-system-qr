@@ -154,6 +154,82 @@ Invoices | Advance Billing System
     color: #6b7280;
 }
 
+/* =========================
+   Action Icons
+========================= */
+
+/* Invoice action buttons */
+.invoice-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    white-space: nowrap;
+}
+
+.action-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    text-decoration: none !important;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+/* QR preview */
+.action-qr {
+    color: #087f8c;
+    background: #e7f7f8;
+    border-color: #c5ecef;
+}
+
+.action-qr:hover {
+    color: #ffffff;
+    background: #087f8c;
+    border-color: #087f8c;
+    transform: translateY(-2px);
+}
+
+/* View invoice */
+.action-view {
+    color: #3457d5;
+    background: #edf1ff;
+    border-color: #d8e0ff;
+}
+
+.action-view:hover {
+    color: #ffffff;
+    background: #3457d5;
+    border-color: #3457d5;
+    transform: translateY(-2px);
+}
+
+/* Download PDF */
+.action-pdf {
+    color: #c0394b;
+    background: #fff0f1;
+    border-color: #f6d3d7;
+}
+
+.action-pdf:hover {
+    color: #ffffff;
+    background: #c0394b;
+    border-color: #c0394b;
+    transform: translateY(-2px);
+}
+
+/* Keyboard accessibility */
+.action-icon:focus-visible {
+    outline: 3px solid #8ab4ff;
+    outline-offset: 3px;
+}
+
+
 
 /* =========================
    TABLE
@@ -767,18 +843,45 @@ tbody tr:last-child td {
 
                                 <!-- ACTION -->
 
+                                
+
                                 <td>
+                                    <div class="invoice-actions">
 
-                                    <a
-                                        href="{% url 'invoice_detail' invoice.id %}"
-                                        class="view-btn"
-                                    >
+                                        <!-- QR Preview -->
+                                        <a
+                                            href="{% url 'invoice_qr_preview' invoice.id %}"
+                                            class="action-icon action-qr"
+                                            title="Preview QR Code"
+                                            aria-label="Preview QR Code"
+                                        >
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
 
-                                        View
+                                        <!-- View Invoice -->
+                                        <a
+                                            href="{% url 'invoice_detail' invoice.id %}"
+                                            class="action-icon action-view"
+                                            title="View Invoice"
+                                            aria-label="View Invoice"
+                                        >
+                                            <i class="fas fa-eye"></i>
+                                        </a>
 
-                                    </a>
+                                        <!-- Download PDF -->
+                                        <a
+                                            href="{% url 'download_invoice_pdf' invoice.id %}"
+                                            class="action-icon action-pdf"
+                                            title="Download PDF"
+                                            aria-label="Download Invoice PDF"
+                                        >
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
 
+                                    </div>
                                 </td>
+
+
 
 
                             </tr>

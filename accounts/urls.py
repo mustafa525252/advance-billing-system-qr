@@ -44,7 +44,7 @@ urlpatterns = [
     path('admin-reports/pdf/',views.admin_reports_pdf,name='admin_reports_pdf'),
     path('admin-invoices/',views.admin_invoice_list,name='admin_invoice_list'),
     path('admin-invoice/<int:invoice_id>/',views.admin_invoice_detail,name='admin_invoice_detail'),
-
+    path('invoices/<int:invoice_id>/qr/',views.invoice_qr_preview,name='invoice_qr_preview'),
     # Add inside your existing urlpatterns list:
     path('qr-decoder/', qr_decoder, name='qr_decoder'),
     path('logout/',views.logout_view,name='logout'),

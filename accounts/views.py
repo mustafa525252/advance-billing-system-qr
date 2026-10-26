@@ -1836,6 +1836,36 @@ def invoice_detail(request, invoice_id):
         context
     )
     
+
+@login_required
+def invoice_qr_preview(request, invoice_id):
+    invoices = (
+        Invoice.objects
+        .select_related('customer', 'distributor')
+        .prefetch_related('items__product')
+    )
+
+    if request.user.is_staff:
+        invoice = get_object_or_404(invoices, id=invoice_id)
+    else:
+        invoice = get_object_or_404(
+            invoices,
+            id=invoice_id,
+            distributor=request.user
+        )
+
+    qr_code = generate_invoice_qr(invoice)
+
+    return render(
+        request,
+        'accounts/invoice_qr_preview.html',
+        {
+            'invoice': invoice,
+            'qr_code': qr_code,
+        }
+    )
+
+    
 @login_required
 def print_invoice(request, invoice_id):
     invoice = get_object_or_404(
