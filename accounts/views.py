@@ -185,48 +185,33 @@ def distributor_login(request):
     )
 
 
+
 @login_required
 def admin_dashboard(request):
+    if not request.user.is_active or not request.user.is_staff:
+        messages.error(request, 'Admin access required.')
 
-    if not request.user.is_staff:
-
-        messages.error(
-            request,
-            'Admin access required.'
-        )
+        if request.user.groups.filter(name='Distributor').exists():
+            return redirect('distributor_dashboard')
 
         return redirect('distributor_login')
-
 
     distributors = DistributorProfile.objects.select_related(
         'user'
     ).all().order_by('-created_at')
 
-
     customers = Customer.objects.all()
 
-
-    products = Product.objects.all().order_by(
-        '-created_at'
-    )
-
+    products = Product.objects.all().order_by('-created_at')
 
     context = {
-
         'distributors': distributors,
-
         'customers': customers,
-
         'products': products,
-
         'distributor_count': distributors.count(),
-
         'customer_count': customers.count(),
-
         'product_count': products.count(),
-
     }
-
 
     return render(
         request,
@@ -237,14 +222,19 @@ def admin_dashboard(request):
 
 @login_required
 def distributor_dashboard(request):
-
-    if not request.user.is_authenticated:
+    if not request.user.is_active:
+        logout(request)
+        messages.error(request, 'Your account is inactive.')
         return redirect('distributor_login')
 
-    if not request.user.groups.filter(
-        name='Distributor'
-    ).exists():
+    if request.user.is_staff:
+        return redirect('admin_dashboard')
 
+    if not request.user.groups.filter(name='Distributor').exists():
+        messages.error(
+            request,
+            'Distributor access required.'
+        )
         return redirect('distributor_login')
 
     return render(
@@ -253,10 +243,24 @@ def distributor_dashboard(request):
     )
 
 
+
 def logout_view(request):
+    was_admin = request.user.is_authenticated and request.user.is_staff
+    was_distributor = (
+        request.user.is_authenticated
+        and request.user.groups.filter(name='Distributor').exists()
+    )
+
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
-    return redirect('admin_login')
+
+    if was_admin:
+        return redirect('admin_login')
+
+    if was_distributor:
+        return redirect('distributor_login')
+
+    return redirect('distributor_login')
 
 import re
 
@@ -1536,6 +1540,17 @@ def delete_product(request, product_id):
     
 @login_required
 def create_invoice(request):
+    if not request.user.is_active:
+        logout(request)
+        messages.error(request, 'Your account is inactive.')
+        return redirect('distributor_login')
+
+    if request.user.is_staff:
+        return redirect('admin_dashboard')
+
+    if not request.user.groups.filter(name='Distributor').exists():
+        messages.error(request, 'Distributor access required.')
+        return redirect('distributor_login')
 
     customers = Customer.objects.filter(
         distributor=request.user
@@ -1761,6 +1776,7 @@ def create_invoice(request):
     
     
 
+
 @login_required
 def invoice_list(request):
     invoices = (
@@ -1774,6 +1790,18 @@ def invoice_list(request):
     if not request.user.is_staff:
         invoices = invoices.filter(distributor=request.user)
 
+    # Search by customer name or invoice ID.
+    search_query = request.GET.get('q', '').strip()
+
+    if search_query:
+        search_filter = Q(customer__name__icontains=search_query)
+
+        # Match the database invoice ID when the query is numeric.
+        if search_query.isdigit():
+            search_filter |= Q(id=int(search_query))
+
+        invoices = invoices.filter(search_filter)
+
     invoices = invoices.order_by('-created_at')
 
     total_billing = invoices.aggregate(
@@ -1782,6 +1810,7 @@ def invoice_list(request):
 
     latest_invoice = invoices.first()
 
+    # Show 5 invoices per page and preserve the search query in pagination.
     paginator = Paginator(invoices, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -1791,6 +1820,7 @@ def invoice_list(request):
         'page_obj': page_obj,
         'total_billing': total_billing,
         'latest_invoice': latest_invoice,
+        'search_query': search_query,
     }
 
     return render(
@@ -1799,24 +1829,33 @@ def invoice_list(request):
         context
     )
 
+
     
     
+
 @login_required
 def invoice_detail(request, invoice_id):
+    if not request.user.is_active:
+        logout(request)
+        messages.error(request, 'Your account is inactive.')
+        return redirect('distributor_login')
+
     invoices = (
         Invoice.objects
         .select_related('customer', 'distributor')
         .prefetch_related('items__product')
     )
 
-    # Admins can view every invoice.
-    # Distributors can view only their own invoices.
     if request.user.is_staff:
         invoice = get_object_or_404(
             invoices,
             id=invoice_id
         )
     else:
+        if not request.user.groups.filter(name='Distributor').exists():
+            messages.error(request, 'Invoice access denied.')
+            return redirect('distributor_login')
+
         invoice = get_object_or_404(
             invoices,
             id=invoice_id,
@@ -1835,10 +1874,17 @@ def invoice_detail(request, invoice_id):
         'accounts/invoice_detail.html',
         context
     )
+
     
+
 
 @login_required
 def invoice_qr_preview(request, invoice_id):
+    if not request.user.is_active:
+        logout(request)
+        messages.error(request, 'Your account is inactive.')
+        return redirect('distributor_login')
+
     invoices = (
         Invoice.objects
         .select_related('customer', 'distributor')
@@ -1846,8 +1892,15 @@ def invoice_qr_preview(request, invoice_id):
     )
 
     if request.user.is_staff:
-        invoice = get_object_or_404(invoices, id=invoice_id)
+        invoice = get_object_or_404(
+            invoices,
+            id=invoice_id
+        )
     else:
+        if not request.user.groups.filter(name='Distributor').exists():
+            messages.error(request, 'QR preview access denied.')
+            return redirect('distributor_login')
+
         invoice = get_object_or_404(
             invoices,
             id=invoice_id,
@@ -1864,6 +1917,7 @@ def invoice_qr_preview(request, invoice_id):
             'qr_code': qr_code,
         }
     )
+
 
     
 @login_required
@@ -2810,6 +2864,19 @@ def view_products(request):
 
 @login_required(login_url='admin_login')
 def qr_decoder(request):
+    
+    if not request.user.is_active:
+        logout(request)
+        messages.error(request, 'Your account is inactive.')
+        return redirect('distributor_login')
+
+    if (
+        not request.user.is_staff
+        and not request.user.groups.filter(name='Distributor').exists()
+    ):
+        messages.error(request, 'You do not have permission to use the QR decoder.')
+        return redirect('distributor_login')
+    
     decoded_data = None
     invoice = None
     error = None
