@@ -4,155 +4,526 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Admin Login | Billing System</title>
+    <title>Admin Login | Advance Billing System</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
 
     <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --navy: #0b1220;
+            --navy-light: #111c30;
+            --text-dark: #172033;
+            --text-muted: #8490a5;
+            --border: #e5eaf1;
+        }
+
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
         }
 
         body {
             min-height: 100vh;
+            margin: 0;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            background: #f4f7fb;
+            color: var(--text-dark);
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            background: #f4f6f9;
+            justify-content: center;
+            padding: 35px 16px;
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(
+                    circle at 12% 15%,
+                    rgba(16, 185, 129, 0.10),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 90% 85%,
+                    rgba(37, 99, 235, 0.08),
+                    transparent 28%
+                ),
+                #f4f7fb;
         }
 
-        .login-container {
-            width: 400px;
+        .background-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .shape-one {
+            width: 240px;
+            height: 240px;
+            background: rgba(16, 185, 129, 0.07);
+            top: -100px;
+            right: -70px;
+        }
+
+        .shape-two {
+            width: 180px;
+            height: 180px;
+            background: rgba(15, 23, 42, 0.04);
+            bottom: -70px;
+            left: -55px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 460px;
             background: #ffffff;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 24px;
+            padding: 42px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 25px 70px rgba(15, 23, 42, 0.10);
+            animation: slideUp 0.55s ease-out;
         }
 
-        .logo {
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .brand-logo {
+            width: 62px;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            border-radius: 19px;
+            color: #ffffff;
+            font-size: 27px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #047857);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25);
+        }
+
+        .brand-name {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 800;
+            color: var(--primary-dark);
             text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .login-heading {
+            font-size: 29px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--navy);
+        }
+
+        .login-subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.7;
             margin-bottom: 30px;
         }
 
-        .logo h1 {
-            font-size: 28px;
-            color: #1f2937;
+        .admin-badge {
+            display: table;
+            margin: 0 auto 22px;
+            padding: 7px 13px;
+            border-radius: 30px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 12px;
+            font-weight: 700;
         }
 
-        .logo p {
-            margin-top: 8px;
-            color: #6b7280;
+        .form-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #344054;
+            margin-bottom: 9px;
+        }
+
+        .input-group {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #ffffff;
+        }
+
+        .input-group:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.10);
+        }
+
+        .input-group-text {
+            background: #ffffff;
+            border: none;
+            padding-left: 15px;
+            color: #98a2b3;
+        }
+
+        .form-control {
+            min-height: 51px;
+            border: none;
+            box-shadow: none !important;
             font-size: 14px;
+            padding: 12px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .form-control:focus {
+            border: none;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
+        .form-control::placeholder {
+            color: #aab2c0;
         }
 
-        .form-group input {
-            width: 100%;
-            padding: 13px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            outline: none;
-            font-size: 14px;
+        .password-toggle {
+            background: #ffffff;
+            border: none;
+            color: #98a2b3;
+            padding: 0 15px;
+            cursor: pointer;
         }
 
-        .form-group input:focus {
-            border-color: #2563eb;
+        .password-toggle:hover {
+            color: var(--primary-dark);
+        }
+
+        .forgot-link {
+            color: var(--primary-dark);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .forgot-link:hover {
+            color: #065f46;
+            text-decoration: underline;
         }
 
         .login-btn {
             width: 100%;
-            padding: 13px;
+            min-height: 52px;
             border: none;
-            border-radius: 8px;
-            background: #2563eb;
-            color: white;
+            border-radius: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
             font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 18px rgba(16, 185, 129, 0.20);
         }
 
         .login-btn:hover {
-            background: #1d4ed8;
+            background: linear-gradient(135deg, #059669, #047857);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.27);
         }
 
-        .switch-login {
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #b0b8c5;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 25px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #edf0f5;
+        }
+
+        .alternate-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #344054;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .alternate-login:hover {
+            border-color: var(--primary);
+            background: #f0fdf8;
+            color: var(--primary-dark);
+        }
+
+        .registration-link {
             text-align: center;
             margin-top: 22px;
-            font-size: 14px;
+            font-size: 13px;
+            color: var(--text-muted);
         }
 
-        .switch-login a {
-            color: #2563eb;
+        .registration-link a {
+            color: var(--primary-dark);
+            font-weight: 700;
             text-decoration: none;
-            font-weight: 600;
+        }
+
+        .registration-link a:hover {
+            text-decoration: underline;
+        }
+
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-top: 25px;
+            color: #98a2b3;
+            font-size: 11px;
+        }
+
+        .security-note i {
+            color: var(--primary-dark);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 11px;
+            color: #98a2b3;
+        }
+
+        .alert {
+            font-size: 13px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 22px;
+                border-radius: 20px;
+            }
+
+            .login-heading {
+                font-size: 25px;
+            }
+
+            .brand-logo {
+                width: 56px;
+                height: 56px;
+                border-radius: 17px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<div class="login-container">
+<div class="page-wrapper">
 
-    <div class="logo">
-        <h1>Admin Login</h1>
-        <p>Advance Billing System</p>
-    </div>
+    <div class="background-shape shape-one"></div>
+    <div class="background-shape shape-two"></div>
 
-    <form method="POST">
-        {% csrf_token %}
+    <main class="login-card">
 
-        <div class="form-group">
-            <label>Username</label>
-            <input
-                type="text"
-                name="username"
-                placeholder="Enter username"
-                required
-            >
+        <!-- Brand -->
+        <div class="brand-logo">
+            <i class="bi bi-receipt-cutoff"></i>
         </div>
 
-        <div class="form-group">
-            <label>Password</label>
-            <input
-                type="password"
-                name="password"
-                placeholder="Enter password"
-                required
-            >
+        <div class="brand-name">Advance Billing System</div>
+
+        <h1 class="login-heading">Welcome back</h1>
+
+        <p class="login-subtitle">
+            Sign in to access your administration dashboard.
+        </p>
+
+        <div class="admin-badge">
+            <i class="bi bi-shield-lock-fill me-1"></i>
+            ADMINISTRATOR ACCESS
         </div>
 
-        <button type="submit" class="login-btn">
-            Login as Admin
-        </button>
+        <!-- Django messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div
+                    class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show"
+                    role="alert"
+                >
+                    {{ message }}
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close"
+                    ></button>
+                </div>
+            {% endfor %}
+        {% endif %}
 
-    </form>
+        <!-- Login Form -->
+        <form method="POST" action="{% url 'admin_login' %}">
+            {% csrf_token %}
 
-    <div class="switch-login">
-        Distributor?
-        <a href="{% url 'distributor_login' %}">
+            <div class="mb-4">
+                <label for="username" class="form-label">Username</label>
+
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-person"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="form-control"
+                        placeholder="Enter your username"
+                        autocomplete="username"
+                        required
+                        autofocus
+                    >
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <label for="password" class="form-label">
+                        Password
+                    </label>
+
+                    <a
+                        href="{% url 'admin_forgot_password' %}"
+                        class="forgot-link"
+                    >
+                        Forgot password?
+                    </a>
+                </div>
+
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-lock"></i>
+                    </span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        id="togglePassword"
+                        aria-label="Show password"
+                    >
+                        <i class="bi bi-eye" id="passwordIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn login-btn">
+                <i class="bi bi-box-arrow-in-right me-2"></i>
+                Login as Admin
+            </button>
+        </form>
+
+        <div class="divider">Or access another account</div>
+
+        <a
+            href="{% url 'distributor_login' %}"
+            class="alternate-login"
+        >
+            <i class="bi bi-person-badge fs-5"></i>
             Distributor Login
+            <i class="bi bi-arrow-up-right ms-auto"></i>
         </a>
-        <br>
-        <a href="{% url 'admin_forgot_password' %}">
-    Forgot Password?
-</a>
-        <br>
-        <a href="{% url 'admin_register' %}">Admin Registration</a>
-    </div>
 
+        <div class="registration-link">
+            Need an admin account?
+            <a href="{% url 'admin_register' %}">Register here</a>
+        </div>
+
+        <div class="security-note">
+            <i class="bi bi-shield-check"></i>
+            Your account is protected by secure authentication.
+        </div>
+
+        <div class="footer-text">
+            &copy; 2026 Advance Billing System. All rights reserved.
+        </div>
+
+    </main>
 </div>
+
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Show/hide password
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("password");
+    const passwordIcon = document.getElementById("passwordIcon");
+
+    togglePassword.addEventListener("click", function () {
+        const isPassword = passwordInput.type === "password";
+
+        passwordInput.type = isPassword ? "text" : "password";
+        passwordIcon.classList.toggle("bi-eye", !isPassword);
+        passwordIcon.classList.toggle("bi-eye-slash", isPassword);
+
+        togglePassword.setAttribute(
+            "aria-label",
+            isPassword ? "Hide password" : "Show password"
+        );
+    });
+</script>
 
 </body>
 </html>
