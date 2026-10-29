@@ -1,0 +1,810 @@
+{% extends 'accounts/admin_base.html' %}
+
+{% block title %}Edit Distributor | Advance Billing System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== Main Layout ===== */
+    .edit-distributor-page {
+        max-width: 1050px;
+        margin: 32px auto;
+        padding: 0 22px 45px;
+        color: #172033;
+    }
+
+    .edit-distributor-page * {
+        box-sizing: border-box;
+    }
+
+    /* ===== Hero Header ===== */
+    .edit-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 32px;
+        margin-bottom: 25px;
+        border-radius: 20px;
+        background: linear-gradient(125deg, #111827 0%, #173b60 60%, #047857 100%);
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.13);
+        color: #fff;
+    }
+
+    .edit-hero::after {
+        content: "";
+        position: absolute;
+        top: -100px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+        pointer-events: none;
+    }
+
+    .edit-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 22px;
+        flex-wrap: wrap;
+    }
+
+    .edit-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        color: #a7f3d0;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.7px;
+        text-transform: uppercase;
+    }
+
+    .edit-eyebrow span {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #34d399;
+    }
+
+    .edit-hero h1 {
+        margin: 0 0 10px;
+        color: #fff;
+        font-size: clamp(25px, 3vw, 34px);
+        font-weight: 800;
+        letter-spacing: -0.8px;
+    }
+
+    .edit-hero p {
+        max-width: 580px;
+        margin: 0;
+        color: #d1dce9;
+        font-size: 13px;
+        line-height: 1.8;
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 12px 17px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.09);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .back-button:hover {
+        background: #fff;
+        color: #065f46;
+        transform: translateY(-2px);
+    }
+
+    /* ===== Alerts ===== */
+    .edit-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 17px;
+        margin-bottom: 18px;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        background: #fff1f2;
+        color: #9f1239;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .edit-alert.success {
+        border-color: #a7f3d0;
+        background: #ecfdf5;
+        color: #065f46;
+    }
+
+    .edit-alert.warning {
+        border-color: #fde68a;
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .edit-alert .alert-symbol {
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .edit-alert .alert-message {
+        flex: 1;
+    }
+
+    .edit-alert .alert-close {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 20px;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    /* ===== Form Card ===== */
+    .edit-form-card {
+        overflow: hidden;
+        border: 1px solid #e7edf4;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.045);
+    }
+
+    .form-card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 24px 28px;
+        border-bottom: 1px solid #edf0f5;
+        background: linear-gradient(120deg, #ffffff, #f8fbff);
+    }
+
+    .form-header-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 50px;
+        height: 50px;
+        border: 1px solid #a7f3d0;
+        border-radius: 14px;
+        background: #ecfdf5;
+        color: #047857;
+        font-size: 23px;
+    }
+
+    .form-card-header h2 {
+        margin: 0 0 5px;
+        color: #172033;
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .form-card-header p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .required-note {
+        margin-left: auto;
+        color: #64748b;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .required-note span {
+        color: #dc2626;
+        font-weight: 800;
+    }
+
+    /* ===== Form Body ===== */
+    .form-card-body {
+        padding: 30px 28px;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+    }
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 14px;
+        margin-bottom: 21px;
+        border-bottom: 1px solid #edf0f5;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .section-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 27px;
+        height: 27px;
+        border-radius: 8px;
+        background: #ecfdf5;
+        color: #047857;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .edit-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px 20px;
+    }
+
+    .form-field {
+        min-width: 0;
+    }
+
+    .form-field.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-field label {
+        display: block;
+        margin-bottom: 9px;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .required-star {
+        margin-left: 2px;
+        color: #dc2626;
+    }
+
+    .input-wrap {
+        position: relative;
+    }
+
+    .field-icon {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        color: #94a3b8;
+        font-size: 16px;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .premium-input {
+        display: block;
+        width: 100%;
+        min-height: 49px;
+        padding: 12px 14px 12px 42px;
+        border: 1px solid #dce3ec;
+        border-radius: 10px;
+        outline: none;
+        background: #f8fafc;
+        color: #1e293b;
+        font-family: inherit;
+        font-size: 13px;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .premium-input::placeholder {
+        color: #a0acbb;
+    }
+
+    .premium-input:hover {
+        border-color: #cbd5e1;
+    }
+
+    .premium-input:focus {
+        border-color: #059669;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+    }
+
+    .field-hint {
+        display: block;
+        margin-top: 8px;
+        color: #94a3b8;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    .field-hint.error {
+        color: #dc2626;
+    }
+
+    .field-error {
+        margin-top: 7px;
+        color: #dc2626;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* ===== Information Note ===== */
+    .info-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+        margin-top: 27px;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        background: #eff6ff;
+        color: #1e40af;
+    }
+
+    .info-note-icon {
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .info-note strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+    }
+
+    .info-note p {
+        margin: 0;
+        color: #475569;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    /* ===== Footer Buttons ===== */
+    .form-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding: 20px 28px;
+        border-top: 1px solid #edf0f5;
+        background: #f8fafc;
+    }
+
+    .footer-note {
+        color: #94a3b8;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    .form-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 43px;
+        padding: 11px 17px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .cancel-btn {
+        border-color: #dce3ec;
+        background: #fff;
+        color: #475569;
+    }
+
+    .cancel-btn:hover {
+        background: #f1f5f9;
+        color: #172033;
+    }
+
+    .save-btn {
+        border-color: #047857;
+        background: linear-gradient(135deg, #059669, #047857);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(5, 150, 105, 0.15);
+    }
+
+    .save-btn:hover {
+        background: linear-gradient(135deg, #047857, #065f46);
+        color: #fff;
+        box-shadow: 0 7px 16px rgba(5, 150, 105, 0.22);
+        transform: translateY(-1px);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 700px) {
+        .edit-distributor-page {
+            margin: 20px auto;
+            padding: 0 13px 30px;
+        }
+
+        .edit-hero {
+            padding: 25px 20px;
+            border-radius: 15px;
+        }
+
+        .edit-hero-content {
+            align-items: stretch;
+        }
+
+        .back-button {
+            align-self: flex-start;
+        }
+
+        .form-card-header {
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+
+        .required-note {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        .form-card-body {
+            padding: 23px 20px;
+        }
+
+        .edit-form-grid {
+            grid-template-columns: 1fr;
+            gap: 19px;
+        }
+
+        .form-field.full-width {
+            grid-column: auto;
+        }
+
+        .form-card-footer {
+            align-items: stretch;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .form-actions {
+            width: 100%;
+        }
+
+        .form-actions .form-btn {
+            flex: 1;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .form-header-icon {
+            width: 43px;
+            height: 43px;
+        }
+
+        .form-card-body {
+            padding: 20px 15px;
+        }
+
+        .form-card-footer {
+            padding: 17px 15px;
+        }
+
+        .form-btn {
+            padding: 10px 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="edit-distributor-page">
+
+    <!-- ===== Page Header ===== -->
+    <section class="edit-hero">
+        <div class="edit-hero-content">
+            <div>
+                <div class="edit-eyebrow">
+                    <span></span>
+                    ADMINISTRATION / DISTRIBUTORS
+                </div>
+
+                <h1>Edit Distributor</h1>
+
+                <p>
+                    Update distributor account details and keep your billing
+                    system's contact information accurate and up to date.
+                </p>
+            </div>
+
+            <a href="{% url 'view_distributors' %}" class="back-button">
+                <i class="bi bi-arrow-left"></i>
+                Back to Distributors
+            </a>
+        </div>
+    </section>
+
+
+    <!-- ===== Django Messages ===== -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="edit-alert
+                {% if 'success' in message.tags %}success
+                {% elif 'warning' in message.tags %}warning
+                {% endif %}"
+                role="alert">
+
+                <span class="alert-symbol" aria-hidden="true">
+                    {% if 'success' in message.tags %}
+                        ✓
+                    {% elif 'warning' in message.tags %}
+                        !
+                    {% else %}
+                        !
+                    {% endif %}
+                </span>
+
+                <div class="alert-message">{{ message }}</div>
+
+                <button
+                    type="button"
+                    class="alert-close"
+                    aria-label="Close alert"
+                    onclick="this.parentElement.remove()"
+                >&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+
+    <!-- ===== Edit Form ===== -->
+    <section class="edit-form-card">
+
+        <div class="form-card-header">
+            <div class="form-header-icon">
+                <i class="bi bi-person-gear"></i>
+            </div>
+
+            <div>
+                <h2>Distributor Account Details</h2>
+                <p>Make the necessary changes to the fields below.</p>
+            </div>
+
+            <div class="required-note">
+                <span>*</span> Required fields
+            </div>
+        </div>
+
+
+        <form method="POST" id="editDistributorForm">
+            {% csrf_token %}
+
+            <div class="form-card-body">
+
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <div class="section-heading">
+                        <span class="section-number">01</span>
+                        Personal Information
+                    </div>
+
+                    <div class="edit-form-grid">
+
+                        <div class="form-field">
+                            <label for="first_name">First Name</label>
+
+                            <div class="input-wrap">
+                                <i class="bi bi-person field-icon"></i>
+
+                                <input
+                                    type="text"
+                                    class="premium-input"
+                                    id="first_name"
+                                    name="first_name"
+                                    value="{{ form_data.first_name|default:'' }}"
+                                    maxlength="150"
+                                    autocomplete="given-name"
+                                    placeholder="Enter first name"
+                                >
+                            </div>
+
+                            <span class="field-hint">
+                                The distributor's given name.
+                            </span>
+                        </div>
+
+
+                        <div class="form-field">
+                            <label for="last_name">Last Name</label>
+
+                            <div class="input-wrap">
+                                <i class="bi bi-person field-icon"></i>
+
+                                <input
+                                    type="text"
+                                    class="premium-input"
+                                    id="last_name"
+                                    name="last_name"
+                                    value="{{ form_data.last_name|default:'' }}"
+                                    maxlength="150"
+                                    autocomplete="family-name"
+                                    placeholder="Enter last name"
+                                >
+                            </div>
+
+                            <span class="field-hint">
+                                The distributor's family name.
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- Account Information -->
+                <div class="form-section">
+                    <div class="section-heading">
+                        <span class="section-number">02</span>
+                        Account Information
+                    </div>
+
+                    <div class="edit-form-grid">
+
+                        <div class="form-field full-width">
+                            <label for="username">
+                                Username <span class="required-star">*</span>
+                            </label>
+
+                            <div class="input-wrap">
+                                <i class="bi bi-at field-icon"></i>
+
+                                <input
+                                    type="text"
+                                    class="premium-input"
+                                    id="username"
+                                    name="username"
+                                    value="{{ form_data.username|default:'' }}"
+                                    maxlength="150"
+                                    autocomplete="username"
+                                    placeholder="Enter a unique username"
+                                    required
+                                >
+                            </div>
+
+                            <span class="field-hint">
+                                This username is used to identify the distributor's account.
+                            </span>
+                        </div>
+
+
+                        <div class="form-field">
+                            <label for="email">
+                                Email Address <span class="required-star">*</span>
+                            </label>
+
+                            <div class="input-wrap">
+                                <i class="bi bi-envelope field-icon"></i>
+
+                                <input
+                                    type="email"
+                                    class="premium-input"
+                                    id="email"
+                                    name="email"
+                                    value="{{ form_data.email|default:'' }}"
+                                    maxlength="254"
+                                    autocomplete="email"
+                                    placeholder="name@example.com"
+                                    required
+                                >
+                            </div>
+
+                            <span class="field-hint">
+                                Use a valid email address.
+                            </span>
+                        </div>
+
+
+                        <div class="form-field">
+                            <label for="phone">
+                                Phone Number <span class="required-star">*</span>
+                            </label>
+
+                            <div class="input-wrap">
+                                <i class="bi bi-telephone field-icon"></i>
+
+                                <input
+                                    type="tel"
+                                    class="premium-input"
+                                    id="phone"
+                                    name="phone"
+                                    value="{{ form_data.phone|default:'' }}"
+                                    pattern="[0-9]{10}"
+                                    maxlength="10"
+                                    minlength="10"
+                                    inputmode="numeric"
+                                    autocomplete="tel"
+                                    placeholder="10-digit phone number"
+                                    title="Enter exactly 10 digits."
+                                    required
+                                >
+                            </div>
+
+                            <span class="field-hint">
+                                Enter exactly 10 digits, without spaces or country code.
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- Information Notice -->
+                <div class="info-note">
+                    <div class="info-note-icon">
+                        <i class="bi bi-info-circle"></i>
+                    </div>
+
+                    <div>
+                        <strong>Before saving your changes</strong>
+
+                        <p>
+                            Ensure the username, email address, and phone number
+                            are correct. The username and email should not
+                            conflict with another account. Your changes will be
+                            saved when you select the button below.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- ===== Form Footer ===== -->
+            <div class="form-card-footer">
+
+                <div class="footer-note">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Review your changes before saving.
+                </div>
+
+                <div class="form-actions">
+                    <a
+                        href="{% url 'view_distributors' %}"
+                        class="form-btn cancel-btn"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="form-btn save-btn"
+                    >
+                        <i class="bi bi-check2-circle"></i>
+                        Save Changes
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </section>
+
+</div>
+{% endblock %}

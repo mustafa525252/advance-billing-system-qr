@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,6 +49,8 @@
             overflow: hidden;
             box-shadow: 0 30px 90px rgba(15, 23, 42, .12);
         }
+
+        /* Branding panel */
 
         .brand-panel {
             position: relative;
@@ -154,6 +157,8 @@
             color: rgba(255,255,255,.65);
             font-size: 12px;
         }
+
+        /* Login form panel */
 
         .form-panel {
             padding: 58px 54px;
@@ -338,10 +343,126 @@
             color: var(--text-dark);
         }
 
+        /* Premium Django notifications */
+
         .alert {
-            border-radius: 11px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px 46px 16px 16px;
+            margin-bottom: 14px;
+            border: 1px solid transparent;
+            border-radius: 14px;
             font-size: 13px;
+            font-weight: 500;
+            line-height: 1.6;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+            animation: alertSlideIn 0.35s ease-out;
         }
+
+        /* Red error notification */
+
+        .alert-error,
+        .alert-danger {
+            color: #b91c1c;
+            background: linear-gradient(135deg, #fff1f2, #fff7f7);
+            border-color: #fecaca;
+            border-left: 4px solid #dc2626;
+        }
+
+        /* Green success notification */
+
+        .alert-success {
+            color: #166534;
+            background: linear-gradient(135deg, #f0fdf4, #f7fff9);
+            border-color: #bbf7d0;
+            border-left: 4px solid #16a34a;
+        }
+
+        /* Amber warning notification */
+
+        .alert-warning {
+            color: #92400e;
+            background: linear-gradient(135deg, #fffbeb, #fffdf5);
+            border-color: #fde68a;
+            border-left: 4px solid #d97706;
+        }
+
+        /* Blue information notification */
+
+        .alert-info {
+            color: #1d4ed8;
+            background: linear-gradient(135deg, #eff6ff, #f8fbff);
+            border-color: #bfdbfe;
+            border-left: 4px solid #2563eb;
+        }
+
+        .alert-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .alert-error .alert-icon,
+        .alert-danger .alert-icon {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .alert-success .alert-icon {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .alert-warning .alert-icon {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .alert-info .alert-icon {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .alert-message {
+            flex: 1;
+            padding-top: 3px;
+        }
+
+        .alert .btn-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 10px;
+            height: 10px;
+            padding: 5px;
+            opacity: 0.55;
+        }
+
+        .alert .btn-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes alertSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive design */
 
         @media (max-width: 850px) {
             .login-shell {
@@ -409,16 +530,23 @@
                 scroll-behavior: auto !important;
                 transition: none !important;
             }
+
+            .alert {
+                animation: none;
+            }
         }
     </style>
 </head>
 
 <body>
+
 <div class="login-shell">
 
     <!-- Branding -->
     <section class="brand-panel">
+
         <div class="brand-content">
+
             <div class="brand-mark" aria-hidden="true">▤</div>
 
             <h1>
@@ -432,6 +560,7 @@
             </p>
 
             <div class="feature-list">
+
                 <div class="feature-item">
                     <span class="feature-check" aria-hidden="true">✓</span>
                     <span>Secure distributor access</span>
@@ -446,16 +575,19 @@
                     <span class="feature-check" aria-hidden="true">✓</span>
                     <span>Professional invoices with QR codes</span>
                 </div>
+
             </div>
         </div>
 
         <div class="brand-footer">
             © 2026 Advance Billing System. All rights reserved.
         </div>
+
     </section>
 
     <!-- Login Form -->
     <main class="form-panel">
+
         <div class="security-badge">
             <span class="status-dot"></span>
             DISTRIBUTOR PORTAL
@@ -466,22 +598,46 @@
             <p>Sign in with your registered email to continue.</p>
         </div>
 
-        <!-- Django Messages -->
+        <!-- Premium Django Messages -->
         {% if messages %}
-            <div class="mb-4" aria-live="polite">
+            <div class="mb-4" aria-live="polite" aria-atomic="false">
+
                 {% for message in messages %}
+
                     <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show"
                          role="alert">
-                        {{ message }}
+
+                        {% if 'success' in message.tags %}
+                            <span class="alert-icon" aria-hidden="true">✓</span>
+
+                        {% elif 'error' in message.tags or 'danger' in message.tags %}
+                            <span class="alert-icon" aria-hidden="true">!</span>
+
+                        {% elif 'warning' in message.tags %}
+                            <span class="alert-icon" aria-hidden="true">!</span>
+
+                        {% else %}
+                            <span class="alert-icon" aria-hidden="true">i</span>
+                        {% endif %}
+
+                        <div class="alert-message">
+                            {{ message }}
+                        </div>
+
                         <button type="button"
                                 class="btn-close"
                                 data-bs-dismiss="alert"
-                                aria-label="Close"></button>
+                                aria-label="Close">
+                        </button>
+
                     </div>
+
                 {% endfor %}
+
             </div>
         {% endif %}
 
+        <!-- Login Form -->
         <form method="POST" action="{% url 'distributor_login' %}">
             {% csrf_token %}
 
@@ -534,6 +690,7 @@
             <button type="submit" class="btn btn-login w-100">
                 Sign in to your account <span aria-hidden="true">→</span>
             </button>
+
         </form>
 
         <div class="divider">New to the platform?</div>
@@ -549,7 +706,9 @@
         <a href="{% url 'admin_login' %}" class="admin-link">
             Administrator? Sign in here →
         </a>
+
     </main>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -566,5 +725,6 @@
         toggleButton.setAttribute("aria-pressed", String(isPassword));
     });
 </script>
+
 </body>
 </html>

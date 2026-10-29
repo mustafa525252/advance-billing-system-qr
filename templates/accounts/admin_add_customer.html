@@ -1,0 +1,506 @@
+{% extends 'accounts/admin_base.html' %}
+
+{% block content %}
+
+<style>
+    .customer-page {
+        padding: 28px 0 40px;
+        color: #1e293b;
+    }
+
+    .customer-page .page-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .customer-page .heading-title {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 750;
+        letter-spacing: -0.7px;
+        margin-bottom: 6px;
+        color: #172554;
+    }
+
+    .customer-page .heading-subtitle {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.94rem;
+    }
+
+    .customer-page .heading-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+        flex-shrink: 0;
+    }
+
+    .customer-page .customer-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.055);
+    }
+
+    .customer-page .card-top {
+        padding: 24px 28px;
+        color: #fff;
+        background: linear-gradient(120deg, #1d4ed8, #4f46e5 60%, #7c3aed);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .customer-page .card-top::after {
+        content: "";
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        right: -45px;
+        top: -100px;
+        border: 28px solid rgba(255, 255, 255, 0.09);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .customer-page .card-top h5 {
+        position: relative;
+        z-index: 1;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+
+    .customer-page .card-top p {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 0.9rem;
+    }
+
+    .customer-page .card-content {
+        padding: 28px;
+    }
+
+    .customer-page .section-label {
+        font-size: 0.77rem;
+        font-weight: 750;
+        letter-spacing: 1px;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    .customer-page .form-label {
+        font-size: 0.9rem;
+        font-weight: 650;
+        color: #334155;
+        margin-bottom: 8px;
+    }
+
+    .customer-page .form-control,
+    .customer-page .form-select {
+        min-height: 48px;
+        border: 1px solid #dbe3ef;
+        border-radius: 11px;
+        padding: 11px 13px;
+        color: #1e293b;
+        background-color: #fff;
+        font-size: 0.94rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .customer-page textarea.form-control {
+        min-height: 115px;
+        resize: vertical;
+    }
+
+    .customer-page .form-control::placeholder {
+        color: #94a3b8;
+    }
+
+    .customer-page .form-control:focus,
+    .customer-page .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.11);
+        outline: none;
+    }
+
+    .customer-page .field-icon {
+        color: #64748b;
+        margin-right: 6px;
+    }
+
+    .customer-page .field-help {
+        display: block;
+        margin-top: 6px;
+        color: #94a3b8;
+        font-size: 0.78rem;
+    }
+
+    .customer-page .distributor-box {
+        background: #f8faff;
+        border: 1px solid #dbeafe;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 28px;
+    }
+
+    .customer-page .distributor-box .form-select {
+        background-color: #fff;
+    }
+
+    .customer-page .section-divider {
+        border: 0;
+        border-top: 1px solid #e9eef5;
+        margin: 28px 0;
+        opacity: 1;
+    }
+
+    .customer-page .alert {
+        border: 0;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+    }
+
+    .customer-page .alert-success {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .customer-page .alert-danger,
+    .customer-page .alert-error {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .customer-page .alert-warning {
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .customer-page .alert-info {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .customer-page .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-top: 22px;
+        border-top: 1px solid #e9eef5;
+    }
+
+    .customer-page .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .customer-page .btn {
+        min-height: 45px;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-weight: 650;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .customer-page .btn-primary {
+        border: 0;
+        color: #fff;
+        background: linear-gradient(110deg, #2563eb, #4f46e5);
+        box-shadow: 0 5px 14px rgba(79, 70, 229, 0.18);
+    }
+
+    .customer-page .btn-primary:hover {
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+    }
+
+    .customer-page .btn-light-outline {
+        color: #475569;
+        border: 1px solid #dbe3ef;
+        background: #fff;
+    }
+
+    .customer-page .btn-light-outline:hover {
+        color: #1e293b;
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .customer-page .privacy-note {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    @media (max-width: 576px) {
+        .customer-page {
+            padding: 18px 0 28px;
+        }
+
+        .customer-page .card-top,
+        .customer-page .card-content {
+            padding: 20px;
+        }
+
+        .customer-page .distributor-box {
+            padding: 16px;
+        }
+
+        .customer-page .form-actions {
+            align-items: stretch;
+        }
+
+        .customer-page .action-buttons {
+            width: 100%;
+        }
+
+        .customer-page .action-buttons .btn {
+            flex: 1;
+        }
+
+        .customer-page .privacy-note {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid customer-page">
+
+    <!-- Page heading -->
+    <div class="page-heading">
+        <div>
+            <h2 class="heading-title">Add New Customer</h2>
+            <p class="heading-subtitle">
+                Create a customer profile and assign it to a distributor.
+            </p>
+        </div>
+
+        <div class="heading-icon">
+            <i class="bi bi-person-plus-fill"></i>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-9 col-xxl-8">
+
+            <div class="customer-card">
+
+                <!-- Card header -->
+                <div class="card-top">
+                    <h5>
+                        <i class="bi bi-person-vcard me-2"></i>
+                        Customer Information
+                    </h5>
+                    <p>Enter the details below to add a customer to your billing system.</p>
+                </div>
+
+                <div class="card-content">
+
+                    <!-- Django messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                                 role="alert">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                {{ message }}
+
+                                <button type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="alert"
+                                        aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST"
+                          action="{% url 'admin_add_customer' %}"
+                          autocomplete="on">
+                        {% csrf_token %}
+
+                        <!-- Distributor assignment -->
+                        <div class="distributor-box">
+                            <div class="section-label">
+                                <i class="bi bi-person-badge me-2"></i>
+                                Distributor Assignment
+                            </div>
+
+                            <label for="distributor" class="form-label">
+                                Select Distributor <span class="text-danger">*</span>
+                            </label>
+
+                            <select name="distributor"
+                                    id="distributor"
+                                    class="form-select"
+                                    required>
+                                <option value="">Choose a distributor...</option>
+
+                                {% for distributor in distributors %}
+                                    <option value="{{ distributor.id }}"
+                                        {% if form_data.distributor == distributor.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ distributor.get_full_name|default:distributor.username }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+
+                            <small class="field-help">
+                                The customer will be assigned to the selected distributor's account.
+                            </small>
+                        </div>
+
+                        <!-- Customer details -->
+                        <div class="section-label">
+                            <i class="bi bi-card-text me-2"></i>
+                            Personal & Contact Details
+                        </div>
+
+                        <div class="row g-4">
+
+                            <!-- Name -->
+                            <div class="col-12 col-md-6">
+                                <label for="name" class="form-label">
+                                    <i class="bi bi-person field-icon"></i>
+                                    Customer Name <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="text"
+                                       name="name"
+                                       id="name"
+                                       class="form-control"
+                                       placeholder="Enter full name"
+                                       value="{{ form_data.name|default:'' }}"
+                                       minlength="3"
+                                       maxlength="100"
+                                       pattern="[A-Za-z ]+"
+                                       title="Use letters and spaces only."
+                                       autocomplete="name"
+                                       required>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-12 col-md-6">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope field-icon"></i>
+                                    Email Address <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="email"
+                                       name="email"
+                                       id="email"
+                                       class="form-control"
+                                       placeholder="customer@example.com"
+                                       value="{{ form_data.email|default:'' }}"
+                                       maxlength="254"
+                                       autocomplete="email"
+                                       required>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="col-12 col-md-6">
+                                <label for="phone" class="form-label">
+                                    <i class="bi bi-telephone field-icon"></i>
+                                    Phone Number <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="tel"
+                                       name="phone"
+                                       id="phone"
+                                       class="form-control"
+                                       placeholder="10-digit phone number"
+                                       value="{{ form_data.phone|default:'' }}"
+                                       inputmode="numeric"
+                                       pattern="[0-9]{10}"
+                                       minlength="10"
+                                       maxlength="10"
+                                       autocomplete="tel"
+                                       title="Enter exactly 10 digits."
+                                       required>
+
+                                <small class="field-help">
+                                    Enter a 10-digit number without spaces or country code.
+                                </small>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <label for="address" class="form-label">
+                                    <i class="bi bi-geo-alt field-icon"></i>
+                                    Customer Address <span class="text-danger">*</span>
+                                </label>
+
+                                <textarea name="address"
+                                          id="address"
+                                          class="form-control"
+                                          placeholder="Enter the complete customer address"
+                                          minlength="5"
+                                          autocomplete="street-address"
+                                          required>{{ form_data.address|default:'' }}</textarea>
+                            </div>
+
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="form-actions mt-4">
+
+                            <div class="privacy-note">
+                                <i class="bi bi-shield-check"></i>
+                                Customer details are saved to the selected distributor.
+                            </div>
+
+                            <div class="action-buttons">
+                                <a href="{% url 'admin_dashboard' %}"
+                                   class="btn btn-light-outline">
+                                    <i class="bi bi-arrow-left"></i>
+                                    Cancel
+                                </a>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-person-plus-fill"></i>
+                                    Add Customer
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Fields marked with <span class="text-danger">*</span> are required.
+                </small>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

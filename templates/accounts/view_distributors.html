@@ -1,189 +1,1032 @@
 {% extends 'accounts/admin_base.html' %}
 
-{% block title %}View Distributors | Advance Billing System{% endblock %}
+{% block title %}Manage Distributors | Advance Billing System{% endblock %}
 
 {% block extra_css %}
 <style>
-    .page {
-        max-width: 1250px;
-        margin: 40px auto;
-        padding: 0 20px
+    /* ===== Page Layout ===== */
+    .distributor-page {
+        max-width: 1450px;
+        margin: 32px auto;
+        padding: 0 24px 40px;
+        color: #172033;
     }
 
-    .page-header {
-        margin-bottom: 25px
+    .distributor-page * {
+        box-sizing: border-box;
     }
 
-    .page-header h1 {
-        font-size: 30px;
-        margin-bottom: 8px
+    /* ===== Hero Header ===== */
+    .distributor-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 34px;
+        margin-bottom: 26px;
+        border-radius: 20px;
+        background: linear-gradient(125deg, #111827 0%, #163b62 58%, #047857 100%);
+        color: #fff;
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.15);
     }
 
-    .page-header p {
-        color: #6b7280;
-        font-size: 14px
+    .distributor-hero::after {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -75px;
+        top: -110px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+        pointer-events: none;
     }
 
-    .search-card,
-    .table-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, .06);
-        margin-bottom: 25px
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 13px;
+        color: #a7f3d0;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+    }
+
+    .hero-eyebrow span {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #34d399;
+        box-shadow: 0 0 12px rgba(52, 211, 153, 0.7);
+    }
+
+    .distributor-hero h1 {
+        margin: 0 0 10px;
+        color: #fff;
+        font-size: clamp(26px, 3vw, 36px);
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .distributor-hero p {
+        max-width: 600px;
+        margin: 0;
+        color: #d1dce9;
+        font-size: 14px;
+        line-height: 1.8;
+    }
+
+    .hero-add-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 13px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 11px;
+        background: #fff;
+        color: #065f46;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .hero-add-btn:hover {
+        background: #d1fae5;
+        color: #064e3b;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .hero-add-btn .plus {
+        font-size: 21px;
+        line-height: 1;
+    }
+
+    /* ===== Summary Cards ===== */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 26px;
+    }
+
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+        padding: 23px;
+        border: 1px solid #e9edf4;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.035);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.07);
+    }
+
+    .summary-icon {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    .summary-icon.total {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .summary-icon.active {
+        background: #d1fae5;
+        color: #047857;
+    }
+
+    .summary-icon.inactive {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .summary-label {
+        margin-bottom: 7px;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+    }
+
+    .summary-value {
+        color: #111827;
+        font-size: 29px;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .summary-note {
+        margin-top: 6px;
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    /* ===== Search Panel ===== */
+    .search-panel {
+        padding: 22px;
+        margin-bottom: 22px;
+        border: 1px solid #e9edf4;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.035);
+    }
+
+    .search-heading {
+        margin-bottom: 15px;
+        color: #1e293b;
+        font-size: 15px;
+        font-weight: 800;
     }
 
     .search-form {
         display: flex;
-        gap: 10px;
-        flex-wrap: wrap
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-input-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .search-icon {
+        position: absolute;
+        top: 50%;
+        left: 15px;
+        color: #94a3b8;
+        font-size: 18px;
+        transform: translateY(-50%);
+        pointer-events: none;
     }
 
     .search-form input {
-        flex: 1;
-        min-width: 200px;
-        padding: 12px;
-        border: 1px solid #d1d5db;
-        border-radius: 8px
-    }
-
-    .btn {
-        padding: 12px 18px;
-        border: 0;
-        border-radius: 8px;
-        background: #059669;
-        color: white;
-        cursor: pointer;
-        text-decoration: none
-    }
-
-    .btn:hover {
-        background: #047857;
-        color: white
-    }
-
-    .table-card {
-        padding: 0;
-        overflow-x: auto
-    }
-
-    table {
         width: 100%;
-        min-width: 700px;
-        border-collapse: collapse
+        min-height: 48px;
+        padding: 12px 15px 12px 43px;
+        border: 1px solid #dce3ec;
+        border-radius: 10px;
+        outline: none;
+        background: #f8fafc;
+        color: #1e293b;
+        font-size: 13px;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    th,
-    td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #e5e7eb;
-        font-size: 14px
+    .search-form input:focus {
+        border-color: #059669;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
     }
 
-    th {
-        background: #f9fafb;
-        color: #6b7280;
+    .search-btn,
+    .reset-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .search-btn {
+        border: 1px solid #047857;
+        background: #059669;
+        color: #fff;
+    }
+
+    .search-btn:hover {
+        background: #047857;
+        color: #fff;
+    }
+
+    .reset-btn {
+        border: 1px solid #dce3ec;
+        background: #fff;
+        color: #475569;
+    }
+
+    .reset-btn:hover {
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+        color: #0f172a;
+    }
+
+    /* ===== Table Panel ===== */
+    .table-panel {
+        overflow: hidden;
+        border: 1px solid #e9edf4;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .table-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding: 22px 24px;
+        border-bottom: 1px solid #edf0f5;
+    }
+
+    .table-panel-header h2 {
+        margin: 0 0 5px;
+        color: #172033;
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .table-panel-header p {
+        margin: 0;
+        color: #94a3b8;
         font-size: 12px;
-        text-transform: uppercase
     }
 
-    .empty {
-        text-align: center;
-        color: #6b7280;
-        padding: 25px
+    .record-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        border: 1px solid #d1fae5;
+        border-radius: 9px;
+        background: #ecfdf5;
+        color: #047857;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .distributor-table {
+        width: 100%;
+        min-width: 1080px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .distributor-table thead th {
+        padding: 15px 18px;
+        border-bottom: 1px solid #e9edf4;
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-align: left;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .distributor-table tbody td {
+        padding: 17px 18px;
+        border-bottom: 1px solid #f0f3f7;
+        color: #475569;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .distributor-table tbody tr {
+        transition: background 0.15s ease;
+    }
+
+    .distributor-table tbody tr:hover {
+        background: #f8fbff;
+    }
+
+    .distributor-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .row-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 29px;
+        height: 29px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .distributor-identity {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 190px;
+    }
+
+    .distributor-avatar {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border: 1px solid #d1fae5;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #d1fae5, #dbeafe);
+        color: #065f46;
+        font-size: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .distributor-name {
+        margin-bottom: 4px;
+        color: #1e293b;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .distributor-username {
+        color: #94a3b8;
+        font-size: 11px;
+    }
+
+    .email-text {
+        overflow-wrap: anywhere;
+    }
+
+    .phone-text {
+        color: #334155;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .date-text {
+        color: #64748b;
+        white-space: nowrap;
+    }
+
+    /* ===== Status Badges ===== */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 10px;
+        border: 1px solid transparent;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+
+    .status-active {
+        border-color: #a7f3d0;
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .status-active .status-dot {
+        background: #10b981;
+    }
+
+    .status-inactive {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .status-inactive .status-dot {
+        background: #ef4444;
+    }
+
+    /* ===== Action Buttons ===== */
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 330px;
+    }
+
+    .action-buttons form {
+        display: inline-flex;
+        margin: 0;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        min-height: 32px;
+        padding: 7px 10px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.18s ease;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .edit-btn {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .edit-btn:hover {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .deactivate-btn {
+        border-color: #fde68a;
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .deactivate-btn:hover {
+        background: #fef3c7;
+        color: #78350f;
+    }
+
+    .activate-btn {
+        border-color: #a7f3d0;
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .activate-btn:hover {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .delete-btn {
+        border-color: #fecaca;
+        background: #fff1f2;
+        color: #be123c;
+    }
+
+    .delete-btn:hover {
+        background: #ffe4e6;
+        color: #9f1239;
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+        padding: 65px 20px !important;
+        text-align: center !important;
+    }
+
+    .empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 65px;
+        height: 65px;
+        margin: 0 auto 17px;
+        border-radius: 20px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 28px;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 8px;
+        color: #1e293b;
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .empty-state p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    /* ===== Pagination ===== */
+    .pagination-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding: 19px 24px;
+        border-top: 1px solid #edf0f5;
+        background: #fff;
+    }
+
+    .pagination-info {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .pagination-info strong {
+        color: #1e293b;
     }
 
     .pagination {
         display: flex;
-        gap: 12px;
         align-items: center;
         justify-content: center;
-        padding: 20px
+        gap: 7px;
+        margin: 0;
     }
 
-    .pagination a {
-        color: #059669;
-        font-weight: bold;
-        text-decoration: none
+    .page-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 11px;
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        background: #fff;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.18s ease;
     }
 
-    @media(max-width:600px) {
-        .page {
-            margin: 25px auto;
-            padding: 0 14px
+    .page-link:hover {
+        border-color: #a7f3d0;
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .page-current {
+        border-color: #059669;
+        background: #059669;
+        color: #fff;
+    }
+
+    .page-current:hover {
+        background: #047857;
+        color: #fff;
+    }
+
+    .page-disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 900px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .distributor-hero {
+            padding: 28px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .distributor-page {
+            margin: 20px auto;
+            padding: 0 13px 25px;
+        }
+
+        .distributor-hero {
+            padding: 24px 20px;
+            border-radius: 15px;
+        }
+
+        .hero-content {
+            align-items: stretch;
+        }
+
+        .hero-add-btn {
+            width: 100%;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .summary-card {
+            padding: 18px;
+        }
+
+        .search-panel {
+            padding: 17px;
         }
 
         .search-form {
-            flex-direction: column
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .search-btn,
+        .reset-btn {
+            width: 100%;
+        }
+
+        .table-panel-header {
+            padding: 18px;
+        }
+
+        .pagination-footer {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 18px;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
         }
     }
 </style>
 {% endblock %}
 
+
 {% block content %}
-<div class="page">
-    <div class="page-header">
-        <div style="display:flex;justify-content:space-between;
-                    align-items:center;gap:15px;flex-wrap:wrap;">
+<div class="distributor-page">
+
+    <!-- ===== Hero Header ===== -->
+    <section class="distributor-hero">
+        <div class="hero-content">
             <div>
-                <h1>All Distributors</h1>
-                <p>View and search registered distributors in the system.</p>
+                <div class="hero-eyebrow">
+                    <span></span>
+                    ADMINISTRATION / DISTRIBUTORS
+                </div>
+
+                <h1>Distributor Management</h1>
+
+                <p>
+                    Manage distributor accounts, monitor account status,
+                    update contact information, and control access to your
+                    billing platform from one place.
+                </p>
             </div>
 
-            <a class="btn" href="{% url 'admin_add_distributor' %}">
-                + Add Distributor
+            <a class="hero-add-btn" href="{% url 'admin_add_distributor' %}">
+                <span class="plus">+</span>
+                Add New Distributor
             </a>
         </div>
-    </div>
+    </section>
 
-    <div class="search-card">
+
+    <!-- ===== Summary Cards ===== -->
+    <section class="summary-grid">
+
+        <div class="summary-card">
+            <div class="summary-icon total">#</div>
+            <div>
+                <div class="summary-label">Total Distributors</div>
+                <div class="summary-value">
+                    {{ total_distributors|default:page_obj.paginator.count }}
+                </div>
+                <div class="summary-note">Registered accounts</div>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon active">✓</div>
+            <div>
+                <div class="summary-label">Active Accounts</div>
+                <div class="summary-value">
+                    {{ active_distributors|default:"—" }}
+                </div>
+                <div class="summary-note">Accounts currently enabled</div>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon inactive">!</div>
+            <div>
+                <div class="summary-label">Inactive Accounts</div>
+                <div class="summary-value">
+                    {{ inactive_distributors|default:"—" }}
+                </div>
+                <div class="summary-note">Deactivated accounts</div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ===== Search Panel ===== -->
+    <section class="search-panel">
+        <div class="search-heading">Find a distributor</div>
+
         <form method="get" class="search-form">
-            <input type="search" name="q" value="{{ search }}" placeholder="Search name, email or phone...">
-            <button class="btn" type="submit">Search</button>
-            <a class="btn" href="{% url 'view_distributors' %}">Reset</a>
+            <div class="search-input-wrap">
+                <span class="search-icon" aria-hidden="true">⌕</span>
+
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ search }}"
+                    placeholder="Search by name, username, email or phone..."
+                    aria-label="Search distributors"
+                >
+            </div>
+
+            <button class="search-btn" type="submit">
+                Search Distributors
+            </button>
+
+            <a class="reset-btn" href="{% url 'view_distributors' %}">
+                Reset
+            </a>
         </form>
-    </div>
+    </section>
 
-    <div class="table-card">
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Distributor</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Registered On</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for distributor in page_obj %}
-                <tr>
-                    <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
-                    <td>
-                        {{ distributor.user.get_full_name|default:distributor.user.username }}
-                    </td>
-                    <td>{{ distributor.user.email|default:"—" }}</td>
-                    <td>{{ distributor.phone|default:"—" }}</td>
-                    <td>{{ distributor.created_at|date:"d M Y" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="empty">No distributors found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
 
-        <div class="pagination">
-            {% if page_obj.has_previous %}
-            <a href="?q={{ search|urlencode }}&page={{ page_obj.previous_page_number }}">← Previous</a>
-            {% endif %}
-            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}
-            <a href="?q={{ search|urlencode }}&page={{ page_obj.next_page_number }}">Next →</a>
+    <!-- ===== Distributor Table ===== -->
+    <section class="table-panel">
+
+        <div class="table-panel-header">
+            <div>
+                <h2>All Distributors</h2>
+                <p>Review account details and manage distributor access.</p>
+            </div>
+
+            <div class="record-count">
+                {{ page_obj.paginator.count }} Records
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="distributor-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Distributor</th>
+                        <th>Email Address</th>
+                        <th>Phone Number</th>
+                        <th>Registered On</th>
+                        <th>Account Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for distributor in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="row-number">
+                                {{ forloop.counter0|add:page_obj.start_index }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="distributor-identity">
+                                <div class="distributor-avatar">
+                                    {{ distributor.user.get_full_name|default:distributor.user.username|first|upper }}
+                                </div>
+
+                                <div>
+                                    <div class="distributor-name">
+                                        {{ distributor.user.get_full_name|default:distributor.user.username }}
+                                    </div>
+
+                                    <div class="distributor-username">
+                                        @{{ distributor.user.username }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="email-text">
+                            {{ distributor.user.email|default:"—" }}
+                        </td>
+
+                        <td>
+                            <span class="phone-text">
+                                {{ distributor.phone|default:"—" }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="date-text">
+                                {{ distributor.created_at|date:"d M Y" }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {% if distributor.user.is_active %}
+                                <span class="status-badge status-active">
+                                    <span class="status-dot"></span>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-inactive">
+                                    <span class="status-dot"></span>
+                                    Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="action-buttons">
+
+                                <a
+                                    href="{% url 'admin_edit_distributor' distributor.id %}"
+                                    class="action-btn edit-btn"
+                                >
+                                    Edit
+                                </a>
+
+                                {% if distributor.user.is_active %}
+                                    <a
+                                        href="{% url 'admin_deactivate_distributor' distributor.id %}"
+                                        class="action-btn deactivate-btn"
+                                    >
+                                        Deactivate
+                                    </a>
+                                {% else %}
+                                    <form
+                                        method="post"
+                                        action="{% url 'admin_reactivate_distributor' distributor.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="action-btn activate-btn"
+                                        >
+                                            Reactivate
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                <a
+                                    href="{% url 'admin_delete_distributor' distributor.id %}"
+                                    class="action-btn delete-btn"
+                                >
+                                    Delete
+                                </a>
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-icon">⌕</div>
+
+                            <h3>No distributors found</h3>
+
+                            <p>
+                                {% if search %}
+                                    Try another search term or reset your search.
+                                {% else %}
+                                    Add your first distributor to get started.
+                                {% endif %}
+                            </p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- ===== Pagination ===== -->
+        <div class="pagination-footer">
+            <div class="pagination-info">
+                {% if page_obj.paginator.count %}
+                    Showing
+                    <strong>{{ page_obj.start_index }}</strong>
+                    to
+                    <strong>{{ page_obj.end_index }}</strong>
+                    of
+                    <strong>{{ page_obj.paginator.count }}</strong>
+                    distributors
+                {% else %}
+                    No distributor records available
+                {% endif %}
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="pagination" aria-label="Distributor pagination">
+
+                {% if page_obj.has_previous %}
+                    <a
+                        class="page-link"
+                        href="?q={{ search|urlencode }}&page={{ page_obj.previous_page_number }}"
+                        aria-label="Previous page"
+                    >
+                        ← Previous
+                    </a>
+                {% else %}
+                    <span class="page-link page-disabled">← Previous</span>
+                {% endif %}
+
+                <span class="page-link page-current">
+                    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a
+                        class="page-link"
+                        href="?q={{ search|urlencode }}&page={{ page_obj.next_page_number }}"
+                        aria-label="Next page"
+                    >
+                        Next →
+                    </a>
+                {% else %}
+                    <span class="page-link page-disabled">Next →</span>
+                {% endif %}
+
+            </nav>
             {% endif %}
         </div>
-    </div>
+
+    </section>
+
 </div>
 {% endblock %}

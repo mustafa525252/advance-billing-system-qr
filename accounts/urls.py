@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+
 from .views import admin_reports_pdf, qr_decoder
 
 urlpatterns = [
@@ -48,5 +49,12 @@ urlpatterns = [
     # Add inside your existing urlpatterns list:
     path('qr-decoder/', qr_decoder, name='qr_decoder'),
     path('admin-distributors/add/',views.admin_add_distributor,name='admin_add_distributor'),
+    path('admin-distributors/<int:distributor_id>/edit/',views.admin_edit_distributor,name='admin_edit_distributor'),
+    path('admin-distributors/<int:distributor_id>/deactivate/',views.admin_deactivate_distributor,name='admin_deactivate_distributor'),
+    path('admin-distributors/<int:distributor_id>/reactivate/',views.admin_reactivate_distributor,name='admin_reactivate_distributor'),
+    path('admin-distributors/<int:distributor_id>/delete/',views.admin_delete_distributor,name='admin_delete_distributor'),
+    #add customer from admin
+    path('admin-add-customer/', views.admin_add_customer, name='admin_add_customer'),
+    
     path('logout/',views.logout_view,name='logout'),
 ]

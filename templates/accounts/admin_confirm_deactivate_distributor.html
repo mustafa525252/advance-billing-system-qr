@@ -1,0 +1,142 @@
+{% extends 'accounts/admin_base.html' %}
+
+{% block title %}Deactivate Distributor | Advance Billing System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirm-wrapper {
+        max-width: 650px;
+        margin: 55px auto;
+        padding: 0 20px;
+    }
+
+    .confirm-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+        border-top: 5px solid #f59e0b;
+    }
+
+    .confirm-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #fef3c7;
+        color: #b45309;
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+
+    .confirm-card h1 {
+        font-size: 25px;
+        margin-bottom: 12px;
+    }
+
+    .confirm-card p {
+        color: #6b7280;
+        line-height: 1.7;
+    }
+
+    .distributor-info {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 16px;
+        margin: 20px 0;
+        color: #374151;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .btn-action {
+        border: 0;
+        border-radius: 8px;
+        padding: 11px 18px;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-block;
+    }
+
+    .btn-warning {
+        background: #d97706;
+        color: #fff;
+    }
+
+    .btn-warning:hover {
+        background: #b45309;
+        color: #fff;
+    }
+
+    .btn-cancel {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-cancel:hover {
+        background: #d1d5db;
+        color: #111827;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirm-wrapper">
+    <div class="confirm-card">
+        <div class="confirm-icon">!</div>
+
+        <h1>Deactivate Distributor?</h1>
+
+        <p>
+            The distributor will no longer be able to log in while the account
+            is inactive. Their existing customer records, products, and billing
+            history will remain in the system.
+        </p>
+
+        <div class="distributor-info">
+            <strong>Name:</strong>
+            {{ distributor.user.get_full_name|default:distributor.user.username }}<br>
+
+            <strong>Email:</strong>
+            {{ distributor.user.email|default:"—" }}<br>
+
+            <strong>Phone:</strong>
+            {{ distributor.phone|default:"—" }}<br>
+
+            <strong>Status:</strong>
+            {% if distributor.user.is_active %}
+                Active
+            {% else %}
+                Already deactivated
+            {% endif %}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="actions">
+                <button
+                    type="submit"
+                    class="btn-action btn-warning"
+                    {% if not distributor.user.is_active %}disabled{% endif %}
+                >
+                    Confirm Deactivation
+                </button>
+
+                <a href="{% url 'view_distributors' %}"
+                   class="btn-action btn-cancel">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

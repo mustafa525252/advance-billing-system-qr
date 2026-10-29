@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.serializers import python
 from django.shortcuts import redirect, render, get_object_or_404
 import random
 from datetime import timedelta
@@ -14,6 +15,11 @@ from django.conf import settings
 from django.db.models import Q
 from django.views.decorators.http import require_POST
 from decimal import Decimal, InvalidOperation
+import re
+
+from django.contrib import messages
+from django.contrib.auth.models import User, Group
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from .qr_utils import generate_invoice_qr
@@ -76,58 +82,57 @@ def distributor_login(request):
 
     if request.method == 'POST':
 
-        email = request.POST.get(
-            'email',
-            ''
-        ).strip().lower()
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
 
-        password = request.POST.get(
-            'password',
-            ''
-        )
-
-        # -------------------------
         # Validate fields
-        # -------------------------
-
         if not email or not password:
-
             messages.error(
                 request,
                 'Please enter email and password.'
             )
-
             return render(
                 request,
                 'accounts/distributor_login.html'
             )
 
-        # -------------------------
         # Find user by email
-        # -------------------------
-
         try:
-
-            user_obj = User.objects.get(
-                email__iexact=email
-            )
+            user_obj = User.objects.get(email__iexact=email)
 
         except User.DoesNotExist:
-
             messages.error(
                 request,
                 'Invalid email or password.'
             )
-
             return render(
                 request,
                 'accounts/distributor_login.html'
             )
 
-        # -------------------------
-        # Authenticate user
-        # -------------------------
+        # Check Distributor role
+        if not user_obj.groups.filter(name='Distributor').exists():
+            messages.error(
+                request,
+                'This account is not registered as a Distributor.'
+            )
+            return render(
+                request,
+                'accounts/distributor_login.html'
+            )
 
+        # Check whether the account is deactivated
+        if not user_obj.is_active:
+            messages.error(
+                request,
+                'Your account has been deactivated. Please contact the administrator.'
+            )
+            return render(
+                request,
+                'accounts/distributor_login.html'
+            )
+
+        # Authenticate user
         user = authenticate(
             request,
             username=user_obj.username,
@@ -135,49 +140,19 @@ def distributor_login(request):
         )
 
         if user is None:
-
             messages.error(
                 request,
                 'Invalid email or password.'
             )
-
             return render(
                 request,
                 'accounts/distributor_login.html'
             )
 
-        # -------------------------
-        # Check Distributor role
-        # -------------------------
-
-        if not user.groups.filter(
-            name='Distributor'
-        ).exists():
-
-            messages.error(
-                request,
-                'This account is not registered as a Distributor.'
-            )
-
-            return render(
-                request,
-                'accounts/distributor_login.html'
-            )
-
-        # -------------------------
         # Login
-        # -------------------------
-
         login(request, user)
 
-        print(
-            'DISTRIBUTOR LOGIN SUCCESS:',
-            user.email
-        )
-
-        return redirect(
-            'distributor_dashboard'
-        )
+        return redirect('distributor_dashboard')
 
     return render(
         request,
@@ -268,11 +243,6 @@ def logout_view(request):
 
     return redirect('distributor_login')
 
-import re
-
-from django.contrib import messages
-from django.contrib.auth.models import User, Group
-from django.shortcuts import render, redirect
 
 
 def distributor_register(request):
@@ -2773,7 +2743,7 @@ def admin_reports_pdf(request):
     return response
 
 
-
+    
 
 # VIEW ALL DISTRIBUTORS
 @login_required(login_url='admin_login')
@@ -2784,8 +2754,10 @@ def view_distributors(request):
 
     search = request.GET.get('q', '').strip()
 
+    # Get all distributor profiles and their related users
     distributors = DistributorProfile.objects.select_related('user')
 
+    # Search distributors
     if search:
         distributors = distributors.filter(
             Q(user__first_name__icontains=search) |
@@ -2795,15 +2767,36 @@ def view_distributors(request):
             Q(phone__icontains=search)
         )
 
+    # Sort newest distributors first
     distributors = distributors.order_by('-created_at')
 
+    # Summary counts across all distributors
+    total_distributors = DistributorProfile.objects.count()
+
+    active_distributors = DistributorProfile.objects.filter(
+        user__is_active=True
+    ).count()
+
+    inactive_distributors = total_distributors - active_distributors
+
+    # Pagination
     paginator = Paginator(distributors, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'accounts/view_distributors.html', {
+    # Send data to the template
+    context = {
         'page_obj': page_obj,
         'search': search,
-    })
+        'total_distributors': total_distributors,
+        'active_distributors': active_distributors,
+        'inactive_distributors': inactive_distributors,
+    }
+
+    return render(
+        request,
+        'accounts/view_distributors.html',
+        context
+    )
 
 
 # VIEW ALL CUSTOMERS
@@ -3162,4 +3155,305 @@ def admin_add_distributor(request):
     return render(
         request,
         'accounts/admin_add_distributor.html'
+    )
+    
+    
+    
+@login_required(login_url='distributor_login')
+def admin_add_customer(request):
+    # Only staff/admin users can access this view
+    if not request.user.is_staff:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('distributor_login')
+
+    distributors = User.objects.filter(
+        groups__name='Distributor',
+        is_active=True
+    ).distinct().order_by('username')
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        phone = request.POST.get('phone', '').strip()
+        address = request.POST.get('address', '').strip()
+        distributor_id = request.POST.get('distributor', '').strip()
+
+        # Validate selected distributor
+        try:
+            distributor = distributors.get(pk=int(distributor_id))
+        except (ValueError, TypeError, User.DoesNotExist):
+            messages.error(request, 'Please select a valid distributor.')
+            return render(request, 'accounts/admin_add_customer.html', {
+                'distributors': distributors,
+                'form_data': request.POST,
+            })
+
+        # Validate name
+        if not name:
+            messages.error(request, 'Customer name is required.')
+        elif len(name) < 3:
+            messages.error(
+                request,
+                'Customer name must contain at least 3 characters.'
+            )
+        elif not re.match(r'^[A-Za-z ]+$', name):
+            messages.error(
+                request,
+                'Customer name can contain only letters and spaces.'
+            )
+
+        # Validate email
+        elif not email:
+            messages.error(request, 'Customer email is required.')
+        else:
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, 'Please enter a valid email address.')
+
+        # Validate phone
+        if not any(m.tags == 'error' for m in messages.get_messages(request)):
+            if not phone:
+                messages.error(request, 'Customer phone number is required.')
+            elif not phone.isdigit() or len(phone) != 10:
+                messages.error(
+                    request,
+                    'Phone number must contain exactly 10 digits.'
+                )
+
+        # Validate address
+        if not any(m.tags == 'error' for m in messages.get_messages(request)):
+            if not address:
+                messages.error(request, 'Customer address is required.')
+            elif len(address) < 5:
+                messages.error(
+                    request,
+                    'Address must contain at least 5 characters.'
+                )
+
+        # Check duplicate email and phone for this distributor
+        if not any(m.tags == 'error' for m in messages.get_messages(request)):
+            if Customer.objects.filter(
+                distributor=distributor,
+                email__iexact=email
+            ).exists():
+                messages.error(
+                    request,
+                    'A customer with this email already exists for this distributor.'
+                )
+            elif Customer.objects.filter(
+                distributor=distributor,
+                phone=phone
+            ).exists():
+                messages.error(
+                    request,
+                    'A customer with this phone number already exists for this distributor.'
+                )
+
+        # Save only if validation succeeds
+        if not any(m.tags == 'error' for m in messages.get_messages(request)):
+            Customer.objects.create(
+                distributor=distributor,
+                name=name,
+                email=email,
+                phone=phone,
+                address=address,
+            )
+
+            messages.success(request, 'Customer added successfully!')
+            return redirect('admin_add_customer')
+
+        return render(request, 'accounts/admin_add_customer.html', {
+            'distributors': distributors,
+            'form_data': request.POST,
+        })
+
+    return render(request, 'accounts/admin_add_customer.html', {
+        'distributors': distributors,
+        'form_data': {},
+    })
+    
+    
+    
+@login_required(login_url='distributor_login')
+def admin_edit_distributor(request, distributor_id):
+
+    # Only admins can access this page
+    if not request.user.is_staff:
+        messages.error(request, 'You do not have permission to edit distributors.')
+        return redirect('distributor_login')
+
+    distributor_profile = get_object_or_404(
+        DistributorProfile.objects.select_related('user'),
+        pk=distributor_id
+    )
+    distributor_user = distributor_profile.user
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        phone = request.POST.get('phone', '').strip()
+
+        errors = []
+
+        if not username:
+            errors.append('Username is required.')
+        elif User.objects.filter(
+            username__iexact=username
+        ).exclude(pk=distributor_user.pk).exists():
+            errors.append('This username is already taken.')
+
+        if not email:
+            errors.append('Email address is required.')
+        else:
+            try:
+                validate_email(email)
+            except ValidationError:
+                errors.append('Please enter a valid email address.')
+
+        if User.objects.filter(
+            email__iexact=email
+        ).exclude(pk=distributor_user.pk).exists():
+            errors.append('This email address is already in use.')
+
+        if not phone.isdigit() or len(phone) != 10:
+            errors.append('Phone number must contain exactly 10 digits.')
+        elif DistributorProfile.objects.filter(
+            phone=phone
+        ).exclude(pk=distributor_profile.pk).exists():
+            errors.append('This phone number is already in use.')
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            distributor_user.username = username
+            distributor_user.first_name = first_name
+            distributor_user.last_name = last_name
+            distributor_user.email = email
+            distributor_user.save()
+
+            distributor_profile.phone = phone
+            distributor_profile.save(update_fields=['phone'])
+
+            messages.success(request, 'Distributor updated successfully!')
+            return redirect('view_distributors')
+
+        return render(request, 'accounts/admin_edit_distributor.html', {
+            'distributor': distributor_profile,
+            'form_data': request.POST,
+        })
+
+    return render(request, 'accounts/admin_edit_distributor.html', {
+        'distributor': distributor_profile,
+        'form_data': {
+            'username': distributor_user.username,
+            'first_name': distributor_user.first_name,
+            'last_name': distributor_user.last_name,
+            'email': distributor_user.email,
+            'phone': distributor_profile.phone,
+        },
+    })
+    
+    
+@login_required(login_url='admin_login')
+def admin_deactivate_distributor(request, distributor_id):
+    """Display confirmation and deactivate a distributor."""
+    if not request.user.is_staff:
+        messages.error(request, "You are not authorized to perform this action.")
+        return redirect('admin_dashboard')
+
+    distributor = get_object_or_404(
+        DistributorProfile.objects.select_related('user'),
+        pk=distributor_id
+    )
+
+    if request.method == 'POST':
+        if not distributor.user.is_active:
+            messages.info(request, "This distributor is already deactivated.")
+        else:
+            distributor.user.is_active = False
+            distributor.user.save(update_fields=['is_active'])
+            messages.success(
+                request,
+                f"{distributor.user.get_full_name() or distributor.user.username} "
+                "has been deactivated."
+            )
+
+        return redirect('view_distributors')
+
+    return render(
+        request,
+        'accounts/admin_confirm_deactivate_distributor.html',
+        {'distributor': distributor}
+    )
+
+
+@login_required(login_url='admin_login')
+def admin_reactivate_distributor(request, distributor_id):
+    """Reactivate a previously deactivated distributor."""
+    if not request.user.is_staff:
+        messages.error(request, "You are not authorized to perform this action.")
+        return redirect('admin_dashboard')
+
+    distributor = get_object_or_404(
+        DistributorProfile.objects.select_related('user'),
+        pk=distributor_id
+    )
+
+    if request.method != 'POST':
+        return redirect('view_distributors')
+
+    if distributor.user.is_active:
+        messages.info(request, "This distributor is already active.")
+    else:
+        distributor.user.is_active = True
+        distributor.user.save(update_fields=['is_active'])
+        messages.success(
+            request,
+            f"{distributor.user.get_full_name() or distributor.user.username} "
+            "has been reactivated."
+        )
+
+    return redirect('view_distributors')
+
+
+@login_required(login_url='admin_login')
+def admin_delete_distributor(request, distributor_id):
+    """Permanently delete the distributor account after confirmation."""
+    if not request.user.is_staff:
+        messages.error(request, "You are not authorized to perform this action.")
+        return redirect('admin_dashboard')
+
+    distributor = get_object_or_404(
+        DistributorProfile.objects.select_related('user'),
+        pk=distributor_id
+    )
+
+    if request.method == 'POST':
+        user = distributor.user
+        distributor_name = user.get_full_name() or user.username
+
+        # Preserve existing records by removing their link to this user.
+        # These foreign keys are nullable in the models provided.
+        Customer.objects.filter(distributor=user).update(distributor=None)
+        Product.objects.filter(distributor=user).update(distributor=None)
+        Invoice.objects.filter(distributor=user).update(distributor=None)
+
+        # Delete the account and its DistributorProfile.
+        user.delete()
+
+        messages.success(
+            request,
+            f"Distributor account '{distributor_name}' was permanently deleted. "
+            "Existing customers, products, invoices, and invoice items were preserved."
+        )
+        return redirect('view_distributors')
+
+    return render(
+        request,
+        'accounts/admin_confirm_delete_distributor.html',
+        {'distributor': distributor}
     )

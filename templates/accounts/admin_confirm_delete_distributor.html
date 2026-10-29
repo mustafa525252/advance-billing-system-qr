@@ -1,0 +1,151 @@
+{% extends 'accounts/admin_base.html' %}
+
+{% block title %}Delete Distributor | Advance Billing System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirm-wrapper {
+        max-width: 650px;
+        margin: 55px auto;
+        padding: 0 20px;
+    }
+
+    .confirm-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+        border-top: 5px solid #dc2626;
+    }
+
+    .confirm-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+
+    .confirm-card h1 {
+        font-size: 25px;
+        margin-bottom: 12px;
+    }
+
+    .confirm-card p {
+        color: #6b7280;
+        line-height: 1.7;
+    }
+
+    .warning-box {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 20px 0;
+        line-height: 1.7;
+    }
+
+    .distributor-info {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 16px;
+        margin: 20px 0;
+        color: #374151;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .btn-action {
+        border: 0;
+        border-radius: 8px;
+        padding: 11px 18px;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-block;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+        color: #fff;
+    }
+
+    .btn-delete:hover {
+        background: #b91c1c;
+        color: #fff;
+    }
+
+    .btn-cancel {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-cancel:hover {
+        background: #d1d5db;
+        color: #111827;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirm-wrapper">
+    <div class="confirm-card">
+        <div class="confirm-icon">!</div>
+
+        <h1>Delete Distributor Permanently?</h1>
+
+        <p>
+            You are about to permanently delete this distributor's login
+            account and distributor profile.
+        </p>
+
+        <div class="warning-box">
+            <strong>Important:</strong>
+            This action cannot be undone. The customer's, product's, and
+            invoice records currently linked to this distributor will be
+            retained, but their distributor association will be removed.
+            The deleted account cannot be restored.
+        </div>
+
+        <div class="distributor-info">
+            <strong>Name:</strong>
+            {{ distributor.user.get_full_name|default:distributor.user.username }}<br>
+
+            <strong>Username:</strong>
+            {{ distributor.user.username }}<br>
+
+            <strong>Email:</strong>
+            {{ distributor.user.email|default:"—" }}<br>
+
+            <strong>Phone:</strong>
+            {{ distributor.phone|default:"—" }}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="actions">
+                <button type="submit" class="btn-action btn-delete">
+                    Yes, Delete Permanently
+                </button>
+
+                <a href="{% url 'view_distributors' %}"
+                   class="btn-action btn-cancel">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
