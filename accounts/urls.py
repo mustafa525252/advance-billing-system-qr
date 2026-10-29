@@ -47,5 +47,6 @@ urlpatterns = [
     path('invoices/<int:invoice_id>/qr/',views.invoice_qr_preview,name='invoice_qr_preview'),
     # Add inside your existing urlpatterns list:
     path('qr-decoder/', qr_decoder, name='qr_decoder'),
+    path('admin-distributors/add/',views.admin_add_distributor,name='admin_add_distributor'),
     path('logout/',views.logout_view,name='logout'),
 ]

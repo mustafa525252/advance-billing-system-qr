@@ -21,7 +21,7 @@ class DistributorProfile(models.Model):
     )
 
     def __str__(self):
-        return self.user.first_name
+        return self.user.get_full_name() or self.user.username
 
 
 class OTPVerification(models.Model):

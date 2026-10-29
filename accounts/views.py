@@ -186,6 +186,7 @@ def distributor_login(request):
 
 
 
+
 @login_required
 def admin_dashboard(request):
     if not request.user.is_active or not request.user.is_staff:
@@ -204,6 +205,9 @@ def admin_dashboard(request):
 
     products = Product.objects.all().order_by('-created_at')
 
+    # Task 2: Count invoices directly from the database
+    invoice_count = Invoice.objects.count()
+
     context = {
         'distributors': distributors,
         'customers': customers,
@@ -211,6 +215,7 @@ def admin_dashboard(request):
         'distributor_count': distributors.count(),
         'customer_count': customers.count(),
         'product_count': products.count(),
+        'invoice_count': invoice_count,
     }
 
     return render(
@@ -218,6 +223,7 @@ def admin_dashboard(request):
         'accounts/admin_dashboard.html',
         context
     )
+
 
 
 @login_required
@@ -3053,4 +3059,107 @@ def admin_invoice_detail(request, invoice_id):
         request,
         'accounts/admin_invoice_detail.html',
         context
+    )
+
+
+
+
+
+@login_required(login_url='admin_login')
+def admin_add_distributor(request):
+    # Only active staff/admin users can add distributors
+    if not request.user.is_active or not (
+        request.user.is_staff or request.user.is_superuser
+    ):
+        messages.error(request, "Admin access required.")
+        return redirect('distributor_login')
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        phone = request.POST.get('phone', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        # Validate required fields
+        if not all([name, email, phone, password, confirm_password]):
+            messages.error(request, "Please fill in all fields.")
+
+        elif len(name) < 3 or not all(
+            character.isalpha() or character.isspace()
+            for character in name
+        ):
+            messages.error(
+                request,
+                "Name must contain at least 3 letters and spaces only."
+            )
+
+        elif not phone.isdigit() or len(phone) != 10:
+            messages.error(request, "Enter a valid 10-digit phone number.")
+
+        elif User.objects.filter(email__iexact=email).exists():
+            messages.error(request, "This email is already registered.")
+
+        elif DistributorProfile.objects.filter(phone=phone).exists():
+            messages.error(request, "This phone number is already registered.")
+
+        elif len(password) < 8 or not any(
+            character.isalpha() for character in password
+        ) or not any(character.isdigit() for character in password):
+            messages.error(
+                request,
+                "Password must be at least 8 characters and contain "
+                "at least one letter and one number."
+            )
+
+        elif password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+
+        else:
+            try:
+                with transaction.atomic():
+                    # Generate a unique username from the email
+                    base_username = email.split('@')[0]
+                    username = base_username
+                    counter = 1
+
+                    while User.objects.filter(
+                        username=username
+                    ).exists():
+                        username = f"{base_username}{counter}"
+                        counter += 1
+
+                    user = User.objects.create_user(
+                        username=username,
+                        first_name=name,
+                        email=email,
+                        password=password,
+                    )
+
+                    distributor_group, _ = Group.objects.get_or_create(
+                        name='Distributor'
+                    )
+                    user.groups.add(distributor_group)
+
+                    DistributorProfile.objects.create(
+                        user=user,
+                        phone=phone,
+                    )
+
+                messages.success(
+                    request,
+                    f"Distributor '{name}' added successfully."
+                )
+                return redirect('view_distributors')
+
+            except Exception:
+                messages.error(
+                    request,
+                    "Unable to add distributor. Please check the details "
+                    "and try again."
+                )
+
+    return render(
+        request,
+        'accounts/admin_add_distributor.html'
     )

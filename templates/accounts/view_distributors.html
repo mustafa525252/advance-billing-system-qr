@@ -124,8 +124,17 @@
 {% block content %}
 <div class="page">
     <div class="page-header">
-        <h1>All Distributors</h1>
-        <p>View and search registered distributors in the system.</p>
+        <div style="display:flex;justify-content:space-between;
+                    align-items:center;gap:15px;flex-wrap:wrap;">
+            <div>
+                <h1>All Distributors</h1>
+                <p>View and search registered distributors in the system.</p>
+            </div>
+
+            <a class="btn" href="{% url 'admin_add_distributor' %}">
+                + Add Distributor
+            </a>
+        </div>
     </div>
 
     <div class="search-card">

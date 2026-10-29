@@ -1,0 +1,81 @@
+ {% extends 'accounts/admin_base.html' %}
+
+{% block title %}Add Distributor | Advance Billing System{% endblock %}
+
+{% block content %}
+<div style="max-width: 750px; margin: 40px auto; padding: 0 20px;">
+    <div style="background: white; padding: 30px; border-radius: 12px;
+                box-shadow: 0 5px 20px rgba(0,0,0,.06);">
+
+        <h1 style="margin-top: 0;">Add New Distributor</h1>
+        <p style="color: #6b7280; margin-bottom: 25px;">
+            Create a distributor account from the Admin panel.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 18px;">
+                <label for="name">Full Name</label>
+                <input id="name" type="text" name="name"
+                       value="{{ request.POST.name|default:'' }}"
+                       required minlength="3"
+                       style="display:block;width:100%;box-sizing:border-box;
+                              padding:12px;margin-top:6px;border:1px solid #d1d5db;
+                              border-radius:8px;">
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label for="email">Email Address</label>
+                <input id="email" type="email" name="email"
+                       value="{{ request.POST.email|default:'' }}"
+                       required
+                       style="display:block;width:100%;box-sizing:border-box;
+                              padding:12px;margin-top:6px;border:1px solid #d1d5db;
+                              border-radius:8px;">
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label for="phone">10-Digit Phone Number</label>
+                <input id="phone" type="tel" name="phone"
+                       value="{{ request.POST.phone|default:'' }}"
+                       required pattern="[0-9]{10}" maxlength="10"
+                       inputmode="numeric"
+                       style="display:block;width:100%;box-sizing:border-box;
+                              padding:12px;margin-top:6px;border:1px solid #d1d5db;
+                              border-radius:8px;">
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password"
+                       required minlength="8" autocomplete="new-password"
+                       style="display:block;width:100%;box-sizing:border-box;
+                              padding:12px;margin-top:6px;border:1px solid #d1d5db;
+                              border-radius:8px;">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label for="confirm_password">Confirm Password</label>
+                <input id="confirm_password" type="password"
+                       name="confirm_password" required minlength="8"
+                       autocomplete="new-password"
+                       style="display:block;width:100%;box-sizing:border-box;
+                              padding:12px;margin-top:6px;border:1px solid #d1d5db;
+                              border-radius:8px;">
+            </div>
+
+            <button type="submit"
+                    style="background:#059669;color:white;padding:12px 20px;
+                           border:0;border-radius:8px;cursor:pointer;">
+                Create Distributor
+            </button>
+
+            <a href="{% url 'view_distributors' %}"
+               style="margin-left:12px;color:#374151;text-decoration:none;">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}3
