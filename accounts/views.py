@@ -16,7 +16,6 @@ from django.db.models import Q
 from django.views.decorators.http import require_POST
 from decimal import Decimal, InvalidOperation
 import re
-
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from django.shortcuts import render, redirect
@@ -1401,12 +1400,14 @@ def delete_customer(request, customer_id):
 
     return redirect('customer_list')
 
+
 @login_required(login_url='distributor_login')
 def add_product(request):
     if request.method == 'POST':
         data = validate_product_data(request)
 
         if data is None:
+            messages.error(request, 'Please enter valid product details.')
             return render(request, 'accounts/add_product.html')
 
         Product.objects.create(
@@ -1418,6 +1419,37 @@ def add_product(request):
         return redirect('product_list')
 
     return render(request, 'accounts/add_product.html')
+
+
+
+def validate_product_data(request):
+    try:
+        name = request.POST.get('name', '').strip()
+        category = request.POST.get('category', '').strip()
+        price = Decimal(request.POST.get('price', '0'))
+        stock = int(request.POST.get('stock', '0'))
+        gst_rate = Decimal(request.POST.get('gst_rate', '0'))
+
+        if not name or not category:
+            return None
+
+        if price <= 0 or stock < 0:
+            return None
+
+        if gst_rate < 0 or gst_rate > 100:
+            return None
+
+        return {
+            'name': name,
+            'category': category,
+            'price': price,
+            'stock': stock,
+            'gst_rate': gst_rate,
+        }
+
+    except (ValueError, InvalidOperation, TypeError):
+        return None
+
     
     
 @login_required(login_url='distributor_login')
