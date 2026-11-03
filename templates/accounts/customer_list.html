@@ -1,54 +1,19 @@
 {% extends 'accounts/base.html' %}
 
-
 {% block title %}
     Customers | Advance Billing System
 {% endblock %}
 
-
 {% block extra_css %}
-
 <style>
-
-    /* CONTAINER */
-
-    .container {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 0 20px;
+    .customer-page {
+        max-width: 1250px;
+        margin: 35px auto;
+        padding: 0 20px 40px;
     }
-
-
-    /* MESSAGES */
-
-    .messages {
-        margin-bottom: 20px;
-    }
-
-    .message {
-        padding: 13px 15px;
-        margin-bottom: 10px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .message.success {
-        background: #ecfdf5;
-        color: #047857;
-        border: 1px solid #a7f3d0;
-    }
-
-    .message.error {
-        background: #fef2f2;
-        color: #b91c1c;
-        border: 1px solid #fecaca;
-    }
-
 
     /* PAGE HEADER */
-
-    .page-header {
+    .customer-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -56,534 +21,655 @@
         margin-bottom: 25px;
     }
 
-    .page-header h1 {
-        font-size: 28px;
+    .customer-header h1 {
+        font-size: 27px;
+        font-weight: 700;
+        color: #111827;
         margin-bottom: 6px;
     }
 
-    .page-header p {
+    .customer-header p {
         color: #6b7280;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .add-customer-btn {
+        background: #059669;
+        color: #fff;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: .2s ease;
+        white-space: nowrap;
+    }
+
+    .add-customer-btn:hover {
+        background: #047857;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    /* MESSAGES */
+    .customer-message {
+        padding: 13px 16px;
+        border-radius: 9px;
+        margin-bottom: 15px;
         font-size: 14px;
     }
 
-    .add-btn {
-        background: #059669;
-        color: white;
-        text-decoration: none;
-        padding: 12px 18px;
+    .customer-message.success {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    .customer-message.error {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    /* SEARCH CARD */
+    .customer-search-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, .035);
+    }
+
+    .customer-search-form {
+        display: flex;
+        gap: 12px;
+    }
+
+    .customer-search-form input {
+        flex: 1;
+        min-width: 0;
+        padding: 11px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .customer-search-form input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, .10);
+    }
+
+    .search-button {
+        background: #1f2937;
+        color: #fff;
+        border: none;
+        padding: 11px 22px;
         border-radius: 8px;
         font-size: 14px;
         font-weight: 600;
+        cursor: pointer;
+        transition: .2s ease;
     }
 
-    .add-btn:hover {
-        background: #047857;
+    .search-button:hover {
+        background: #111827;
     }
 
-
-    /* SEARCH */
-
-    .search-card {
-        background: white;
-        padding: 20px;
+    /* TABLE CARD */
+    .customer-table-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
         border-radius: 12px;
-        margin-bottom: 20px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, .035);
     }
 
-    .search-form {
+    .table-heading {
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 19px 22px;
+        border-bottom: 1px solid #e5e7eb;
         gap: 10px;
     }
 
-    .search-form input {
-        flex: 1;
-        padding: 12px 14px;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        outline: none;
-        font-size: 14px;
+    .table-heading h5 {
+        margin: 0;
+        color: #111827;
+        font-size: 16px;
+        font-weight: 700;
     }
 
-    .search-form input:focus {
-        border-color: #059669;
-    }
-
-    .search-btn {
-        background: #1f2937;
-        color: white;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-
-
-    /* TABLE */
-
-    .table-card {
-        background: white;
-        border-radius: 12px;
-        overflow-x: auto;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 800px;
-    }
-
-    th {
-        background: #f9fafb;
-        text-align: left;
-        padding: 15px;
+    .customer-count {
+        background: #ecfdf5;
+        color: #047857;
+        padding: 5px 11px;
+        border-radius: 20px;
         font-size: 12px;
-        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .customer-table {
+        width: 100%;
+        min-width: 850px;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+    .customer-table thead th {
+        background: #f9fafb;
         color: #6b7280;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        padding: 15px 17px;
         border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
     }
 
-    td {
-        padding: 15px;
-        font-size: 14px;
+    .customer-table tbody td {
+        padding: 16px 17px;
+        font-size: 13px;
+        color: #4b5563;
         border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
     }
 
-    tr:last-child td {
+    .customer-table tbody tr {
+        transition: background .2s ease;
+    }
+
+    .customer-table tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    .customer-table tbody tr:last-child td {
         border-bottom: none;
     }
 
+    .customer-number {
+        color: #9ca3af;
+        font-weight: 600;
+    }
+
     .customer-name {
+        color: #111827 !important;
+        font-weight: 700;
+    }
+
+    .customer-email {
+        color: #4b5563;
+    }
+
+    .customer-phone {
         font-weight: 600;
+        color: #374151;
+        white-space: nowrap;
     }
 
-
-    /* ACTIONS */
-
-    .actions {
-        display: flex;
-        gap: 10px;
+    .customer-address {
+        max-width: 200px;
+        line-height: 1.5;
     }
 
-    .edit-btn {
-        background: #eff6ff;
-        color: #2563eb;
-        padding: 7px 12px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .delete-btn {
-        background: #fef2f2;
-        color: #dc2626;
-        padding: 7px 12px;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-
-    /* EMPTY STATE */
-
-    .empty-state {
-        text-align: center;
-        padding: 50px 20px;
+    .created-date {
+        white-space: nowrap;
         color: #6b7280;
     }
 
-    .empty-state h3 {
-        color: #374151;
-        margin-bottom: 10px;
+    /* ACTION BUTTONS */
+    .customer-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
     }
 
+    .edit-button,
+    .delete-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .edit-button {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .edit-button:hover {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .delete-button {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .delete-button:hover {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    /* EMPTY STATE */
+    .customer-empty-state {
+        text-align: center;
+        padding: 55px 20px;
+    }
+
+    .empty-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        background: #ecfdf5;
+        color: #059669;
+        font-size: 25px;
+    }
+
+    .customer-empty-state h5 {
+        color: #111827;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .customer-empty-state p {
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 18px;
+    }
 
     /* DELETE MODAL */
-
-    .modal {
+    .delete-modal {
         display: none;
         position: fixed;
-        z-index: 1000;
-
-        left: 0;
-        top: 0;
-
-        width: 100%;
-        height: 100%;
-
-        background: rgba(17, 24, 39, 0.55);
-
+        inset: 0;
+        z-index: 9999;
+        background: rgba(17, 24, 39, .60);
         justify-content: center;
         align-items: center;
-
         padding: 20px;
     }
 
-    .modal.show {
+    .delete-modal.show {
         display: flex;
     }
 
-    .modal-content {
+    .delete-modal-content {
         width: 100%;
         max-width: 420px;
-
-        background: white;
-        padding: 35px;
-
-        border-radius: 16px;
+        background: #fff;
+        border-radius: 15px;
+        padding: 32px;
         text-align: center;
-
-        box-shadow:
-            0 20px 50px
-            rgba(0, 0, 0, 0.2);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, .2);
+        animation: modalEnter .2s ease;
     }
 
-    .modal-icon {
+    @keyframes modalEnter {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .delete-modal-icon {
         width: 55px;
         height: 55px;
-
-        margin: 0 auto 18px;
-
         display: flex;
         align-items: center;
         justify-content: center;
-
+        margin: 0 auto 17px;
         border-radius: 50%;
-
         background: #fef2f2;
         color: #dc2626;
-
-        font-size: 28px;
-        font-weight: bold;
+        font-size: 26px;
+        font-weight: 700;
     }
 
-    .modal-content h2 {
-        margin-bottom: 12px;
-        font-size: 22px;
+    .delete-modal-content h4 {
+        color: #111827;
+        font-weight: 700;
+        margin-bottom: 10px;
     }
 
-    .modal-content p {
+    .delete-modal-content p {
         color: #6b7280;
         font-size: 14px;
         line-height: 1.6;
     }
 
-    .modal-actions {
+    .delete-modal-actions {
         display: flex;
         gap: 12px;
-        margin-top: 28px;
+        margin-top: 25px;
     }
 
-    .cancel-btn,
-    .confirm-delete-btn {
+    .cancel-delete,
+    .confirm-delete {
         flex: 1;
-
-        padding: 12px;
-
+        padding: 11px;
         border: none;
         border-radius: 8px;
-
-        font-size: 14px;
-        font-weight: 600;
-
+        font-size: 13px;
+        font-weight: 700;
         cursor: pointer;
     }
 
-    .cancel-btn {
+    .cancel-delete {
         background: #f3f4f6;
         color: #374151;
     }
 
-    .confirm-delete-btn {
+    .confirm-delete {
         background: #dc2626;
-        color: white;
+        color: #fff;
     }
 
-    .confirm-delete-btn:hover {
+    .confirm-delete:hover {
         background: #b91c1c;
     }
 
-
     /* RESPONSIVE */
-
     @media (max-width: 600px) {
-
-        .container {
-            margin: 25px auto;
+        .customer-page {
+            margin: 22px auto;
+            padding: 0 12px 30px;
         }
 
-        .page-header {
+        .customer-header {
+            align-items: stretch;
             flex-direction: column;
-            align-items: flex-start;
         }
 
-        .add-btn {
-            width: 100%;
+        .customer-header h1 {
+            font-size: 23px;
+        }
+
+        .add-customer-btn {
             text-align: center;
         }
 
-        .search-form {
+        .customer-search-form {
             flex-direction: column;
         }
 
-        .search-btn {
+        .search-button {
             width: 100%;
         }
 
-        .modal-actions {
-            flex-direction: column;
+        .table-heading {
+            padding: 16px;
         }
 
+        .delete-modal-actions {
+            flex-direction: column;
+        }
     }
-
 </style>
-
 {% endblock %}
 
 
 {% block content %}
 
-
-<div class="container">
-
+<div class="customer-page">
 
     <!-- MESSAGES -->
-
     {% if messages %}
-
-        <div class="messages">
-
-            {% for message in messages %}
-
-                <div class="message {{ message.tags }}">
-                    {{ message }}
-                </div>
-
-            {% endfor %}
-
-        </div>
-
+        {% for message in messages %}
+            <div class="customer-message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
     {% endif %}
 
 
     <!-- PAGE HEADER -->
-
-    <div class="page-header">
-
+    <div class="customer-header">
         <div>
-
-            <h1>
-                Customers
-            </h1>
-
-            <p>
-                Manage all your customers from one place.
-            </p>
-
+            <h1>Customer Management</h1>
+            <p>Manage, search and maintain your customer records.</p>
         </div>
 
-        <a
-            href="{% url 'add_customer' %}"
-            class="add-btn"
-        >
+        <a href="{% url 'add_customer' %}" class="add-customer-btn">
             + Add Customer
         </a>
-
     </div>
 
 
     <!-- SEARCH -->
-
-    <div class="search-card">
-
-        <form
-            method="GET"
-            class="search-form"
-        >
+    <div class="customer-search-card">
+        <form method="GET" class="customer-search-form">
 
             <input
                 type="text"
                 name="search"
-                placeholder="Search by name, email or phone..."
+                placeholder="Search by customer name, email or phone..."
                 value="{{ search_query }}"
             >
 
-            <button
-                type="submit"
-                class="search-btn"
-            >
-                Search
+            <button type="submit" class="search-button">
+                Search Customers
             </button>
 
         </form>
-
     </div>
 
 
     <!-- CUSTOMER TABLE -->
+    <div class="customer-table-card">
 
-    <div class="table-card">
+        <div class="table-heading">
+            <h5>Customer Records</h5>
 
-        {% if customers %}
-
-            <table>
-
-                <thead>
-
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Address</th>
-                        <th>Created</th>
-                        <th>Actions</th>
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    {% for customer in customers %}
-
-                        <tr>
-
-                            <td>
-                                {{ forloop.counter }}
-                            </td>
-
-                            <td class="customer-name">
-                                {{ customer.name }}
-                            </td>
-
-                            <td>
-                                {{ customer.email }}
-                            </td>
-
-                            <td>
-                                {{ customer.phone }}
-                            </td>
-
-                            <td>
-                                {{ customer.address }}
-                            </td>
-
-                            <td>
-                                {{ customer.created_at|date:"d M Y" }}
-                            </td>
-
-                            <td>
-
-                                <div class="actions">
-
-                                    <a
-                                        href="{% url 'edit_customer' customer.id %}"
-                                        class="edit-btn"
-                                    >
-                                        Edit
-                                    </a>
-
-
-                                    <button
-                                        type="button"
-                                        class="delete-btn"
-                                        onclick="openDeleteModal(
-                                            '{{ customer.id }}',
-                                            '{{ customer.name|escapejs }}'
-                                        )"
-                                    >
-                                        Delete
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-
-        {% else %}
-
-            <div class="empty-state">
-
-                <h3>
-                    No customers found
-                </h3>
-
-                <p>
-                    Add your first customer to get started.
-                </p>
-
-            </div>
-
-        {% endif %}
-
-    </div>
-
-
-</div>
-
-
-<!-- DELETE CONFIRMATION MODAL -->
-
-<div
-    id="deleteModal"
-    class="modal"
->
-
-    <div class="modal-content">
-
-
-        <div class="modal-icon">
-            !
+            {% if customers %}
+                <span class="customer-count">
+                    {{ customers|length }} Customers
+                </span>
+            {% else %}
+                <span class="customer-count">0 Customers</span>
+            {% endif %}
         </div>
 
 
-        <h2>
-            Delete Customer?
-        </h2>
+        {% if customers %}
 
+            <div class="table-responsive">
+
+                <table class="table customer-table align-middle mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Customer Name</th>
+                            <th>Email Address</th>
+                            <th>Phone Number</th>
+                            <th>Address</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for customer in customers %}
+
+                            <tr>
+
+                                <td class="customer-number">
+                                    {{ forloop.counter }}
+                                </td>
+
+                                <td class="customer-name">
+                                    {{ customer.name }}
+                                </td>
+
+                                <td class="customer-email">
+                                    {{ customer.email|default:"—" }}
+                                </td>
+
+                                <td class="customer-phone">
+                                    {{ customer.phone|default:"—" }}
+                                </td>
+
+                                <td class="customer-address">
+                                    {{ customer.address|default:"—" }}
+                                </td>
+
+                                <td class="created-date">
+                                    {{ customer.created_at|date:"d M Y" }}
+                                </td>
+
+                                <td>
+                                    <div class="customer-actions">
+
+                                        <a
+                                            href="{% url 'edit_customer' customer.id %}"
+                                            class="edit-button"
+                                        >
+                                            Edit
+                                        </a>
+
+                                        <!-- CUSTOMER DELETE MODAL -->
+                                        <div id="deleteModal" class="delete-modal">
+
+                                            <div class="delete-modal-content">
+
+                                                <div class="delete-modal-icon">!</div>
+
+                                                <h4>Delete Customer?</h4>
+
+                                                <p id="deleteMessage">
+                                                    Are you sure you want to delete this customer?
+                                                </p>
+
+                                                <form id="deleteForm" method="POST">
+                                                    {% csrf_token %}
+
+                                                    <div class="delete-modal-actions">
+
+                                                        <button
+                                                            type="button"
+                                                            class="cancel-delete"
+                                                            onclick="closeDeleteModal()"
+                                                        >
+                                                            Cancel
+                                                        </button>
+
+                                                        <button type="submit" class="confirm-delete">
+                                                            Yes, Delete
+                                                        </button>
+
+                                                    </div>
+                                                </form>
+
+                                            </div>
+                                        </div>
+
+                                                                            </div>
+                                                                        </td>
+
+                                                                    </tr>
+
+                                                                {% endfor %}
+
+                                                            </tbody>
+
+                                                        </table>
+
+                                                    </div>
+
+                                                {% else %}
+
+                                                    <div class="customer-empty-state">
+
+                                                        <div class="empty-icon">
+                                                            <i class="fas fa-users"></i>
+                                                        </div>
+
+                                                        <h5>
+                                                            {% if search_query %}
+                                                                No Matching Customers
+                                                            {% else %}
+                                                                No Customers Found
+                                                            {% endif %}
+                                                        </h5>
+
+                                                        <p>
+                                                            {% if search_query %}
+                                                                Try searching with another name, email or phone number.
+                                                            {% else %}
+                                                                You haven't added any customers yet. Start by adding your first customer.
+                                                            {% endif %}
+                                                        </p>
+
+                                                        {% if not search_query %}
+                                                            <a href="{% url 'add_customer' %}" class="add-customer-btn">
+                                                                + Add Your First Customer
+                                                            </a>
+                                                        {% endif %}
+
+                                                    </div>
+
+                                                {% endif %}
+
+                                            </div>
+
+                                        </div>
+
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div id="deleteModal" class="delete-modal">
+
+    <div class="delete-modal-content">
+
+        <div class="delete-modal-icon">
+            !
+        </div>
+
+        <h4>Delete Customer?</h4>
 
         <p id="deleteMessage">
             Are you sure you want to delete this customer?
+            This action cannot be undone.
         </p>
 
-
-        <form
-            id="deleteForm"
-            method="POST"
-        >
+        <form id="deleteForm" method="POST">
 
             {% csrf_token %}
 
-
-            <div class="modal-actions">
+            <div class="delete-modal-actions">
 
                 <button
                     type="button"
-                    class="cancel-btn"
+                    class="cancel-delete"
                     onclick="closeDeleteModal()"
                 >
                     Cancel
                 </button>
 
-
-                <button
-                    type="submit"
-                    class="confirm-delete-btn"
-                >
+                <button type="submit" class="confirm-delete">
                     Yes, Delete
                 </button>
 
@@ -591,74 +677,92 @@
 
         </form>
 
-
     </div>
 
 </div>
-
 
 {% endblock %}
 
 
 {% block extra_js %}
+<script>
+    function openDeleteModal(button) {
 
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        const message = document.getElementById('deleteMessage');
+
+        form.action = button.dataset.deleteUrl;
+
+        message.textContent =
+            `Are you sure you want to delete "${button.dataset.itemName}"? This action cannot be undone.`;
+
+        modal.classList.add('show');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+    }
+
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('deleteModal');
+
+        if (event.target === modal) {
+            closeDeleteModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
+</script>
 <script>
 
     function openDeleteModal(customerId, customerName) {
 
-        const modal =
-            document.getElementById('deleteModal');
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        const message = document.getElementById('deleteMessage');
 
-        const form =
-            document.getElementById('deleteForm');
+        form.action = `/customer/${customerId}/delete/`;
 
-        const message =
-            document.getElementById('deleteMessage');
-
-
-        form.action =
-            `/customer/${customerId}/delete/`;
-
-
-        message.innerHTML =
-            `Are you sure you want to delete
-            <strong>${customerName}</strong>?
-            This action cannot be undone.`;
-
+        message.textContent =
+            `Are you sure you want to delete "${customerName}"? This action cannot be undone.`;
 
         modal.classList.add('show');
-
     }
 
 
     function closeDeleteModal() {
 
-        const modal =
-            document.getElementById('deleteModal');
+        const modal = document.getElementById('deleteModal');
 
         modal.classList.remove('show');
-
     }
 
 
-    /* Close modal when clicking outside */
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
 
-    window.addEventListener(
-        'click',
-        function(event) {
+        const modal = document.getElementById('deleteModal');
 
-            const modal =
-                document.getElementById('deleteModal');
-
-            if (event.target === modal) {
-
-                closeDeleteModal();
-
-            }
-
+        if (event.target === modal) {
+            closeDeleteModal();
         }
-    );
+
+    });
+
+
+    // Close modal using Escape key
+    document.addEventListener('keydown', function(event) {
+
+        if (event.key === 'Escape') {
+            closeDeleteModal();
+        }
+
+    });
 
 </script>
-
 {% endblock %}
