@@ -1215,17 +1215,17 @@ def customer_list(request):
 @login_required(login_url='distributor_login')
 def edit_customer(request, customer_id):
 
-    customer = Customer.objects.filter(
-        id=customer_id,
-        distributor=request.user
-    ).first()
-
-    if not customer:
-        messages.error(
-            request,
-            'Customer not found.'
+    if request.user.is_staff:
+        customer = get_object_or_404(
+            Customer,
+            id=customer_id
         )
-        return redirect('customer_list')
+    else:
+        customer = get_object_or_404(
+            Customer,
+            id=customer_id,
+            distributor=request.user
+        )
 
     if request.method == 'POST':
 
@@ -1234,41 +1234,27 @@ def edit_customer(request, customer_id):
         phone = request.POST.get('phone', '').strip()
         address = request.POST.get('address', '').strip()
 
-        # Name validation
         if not name:
             messages.error(request, 'Customer name is required.')
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
         if len(name) < 3:
             messages.error(
                 request,
                 'Customer name must contain at least 3 characters.'
             )
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
         if not re.match(r'^[A-Za-z ]+$', name):
             messages.error(
                 request,
                 'Customer name can contain only letters and spaces.'
             )
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
-        # Email validation
         if not email:
             messages.error(request, 'Email is required.')
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
         email_pattern = (
             r'^[A-Za-z0-9._%+-]+@'
@@ -1280,117 +1266,98 @@ def edit_customer(request, customer_id):
                 request,
                 'Please enter a valid email address.'
             )
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
+            return redirect('edit_customer', customer_id=customer.id)
+
+        duplicate_email = Customer.objects.filter(
+            email__iexact=email
+        ).exclude(id=customer.id)
+
+        if not request.user.is_staff:
+            duplicate_email = duplicate_email.filter(
+                distributor=request.user
             )
 
-        # Duplicate email excluding current customer
-        if Customer.objects.filter(
-            distributor=request.user,
-            email__iexact=email
-        ).exclude(id=customer.id).exists():
-
+        if duplicate_email.exists():
             messages.error(
                 request,
                 'Another customer with this email already exists.'
             )
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
-        # Phone validation
         if not phone:
             messages.error(request, 'Phone number is required.')
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
         if not phone.isdigit() or len(phone) != 10:
             messages.error(
                 request,
                 'Phone number must contain exactly 10 digits.'
             )
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
+            return redirect('edit_customer', customer_id=customer.id)
+
+        duplicate_phone = Customer.objects.filter(
+            phone=phone
+        ).exclude(id=customer.id)
+
+        if not request.user.is_staff:
+            duplicate_phone = duplicate_phone.filter(
+                distributor=request.user
             )
 
-        # Duplicate phone excluding current customer
-        if Customer.objects.filter(
-            distributor=request.user,
-            phone=phone
-        ).exclude(id=customer.id).exists():
-
+        if duplicate_phone.exists():
             messages.error(
                 request,
                 'Another customer with this phone number already exists.'
             )
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
-        # Address validation
         if not address:
             messages.error(request, 'Address is required.')
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
         if len(address) < 5:
             messages.error(
                 request,
                 'Address must contain at least 5 characters.'
             )
-            return redirect(
-                'edit_customer',
-                customer_id=customer.id
-            )
+            return redirect('edit_customer', customer_id=customer.id)
 
-        # Update customer
         customer.name = name
         customer.email = email
         customer.phone = phone
         customer.address = address
         customer.save()
 
-        messages.success(
-            request,
-            'Customer updated successfully!'
-        )
+        messages.success(request, 'Customer updated successfully!')
+
+        if request.user.is_staff:
+            return redirect('view_customers')
 
         return redirect('customer_list')
 
     return render(
         request,
         'accounts/edit_customer.html',
-        {
-            'customer': customer
-        }
+        {'customer': customer}
     )
     
 @login_required(login_url='distributor_login')
 @require_POST
 def delete_customer(request, customer_id):
 
-    customer = Customer.objects.filter(
-        id=customer_id,
-        distributor=request.user
-    ).first()
-
-    if not customer:
-        messages.error(
-            request,
-            'Customer not found or you do not have permission.'
+    if request.user.is_staff:
+        customer = get_object_or_404(
+            Customer,
+            id=customer_id
         )
-        return redirect('customer_list')
+    else:
+        customer = get_object_or_404(
+            Customer,
+            id=customer_id,
+            distributor=request.user
+        )
 
     customer_name = customer.name
-
     customer.delete()
 
     messages.success(
@@ -1398,7 +1365,11 @@ def delete_customer(request, customer_id):
         f'{customer_name} was deleted successfully!'
     )
 
+    if request.user.is_staff:
+        return redirect('view_customers')
+
     return redirect('customer_list')
+
 
 
 @login_required(login_url='distributor_login')
@@ -1483,16 +1454,28 @@ def product_list(request):
     
 @login_required(login_url='distributor_login')
 def edit_product(request, product_id):
-    product = get_object_or_404(
-        Product,
-        id=product_id,
-        distributor=request.user
-    )
+
+    if request.user.is_staff:
+        product = get_object_or_404(
+            Product,
+            id=product_id
+        )
+    else:
+        product = get_object_or_404(
+            Product,
+            id=product_id,
+            distributor=request.user
+        )
 
     if request.method == 'POST':
+
         data = validate_product_data(request)
 
         if data is None:
+            messages.error(
+                request,
+                'Please enter valid product details.'
+            )
             return render(
                 request,
                 'accounts/edit_product.html',
@@ -1507,6 +1490,10 @@ def edit_product(request, product_id):
         product.save()
 
         messages.success(request, 'Product updated successfully.')
+
+        if request.user.is_staff:
+            return redirect('view_products')
+
         return redirect('product_list')
 
     return render(
@@ -1514,17 +1501,26 @@ def edit_product(request, product_id):
         'accounts/edit_product.html',
         {'product': product}
     )
+
     
     
 @login_required(login_url='distributor_login')
 def delete_product(request, product_id):
-    product = get_object_or_404(
-        Product,
-        id=product_id,
-        distributor=request.user
-    )
+
+    if request.user.is_staff:
+        product = get_object_or_404(
+            Product,
+            id=product_id
+        )
+    else:
+        product = get_object_or_404(
+            Product,
+            id=product_id,
+            distributor=request.user
+        )
 
     if request.method == 'POST':
+
         try:
             product.delete()
 
@@ -1535,9 +1531,17 @@ def delete_product(request, product_id):
                 'linked to an existing invoice. You can keep it '
                 'and set its stock to 0 instead.'
             )
+
+            if request.user.is_staff:
+                return redirect('view_products')
+
             return redirect('product_list')
 
         messages.success(request, 'Product deleted successfully.')
+
+        if request.user.is_staff:
+            return redirect('view_products')
+
         return redirect('product_list')
 
     return render(
@@ -1545,6 +1549,7 @@ def delete_product(request, product_id):
         'accounts/delete_product.html',
         {'product': product}
     )
+
     
 @login_required
 def create_invoice(request):
